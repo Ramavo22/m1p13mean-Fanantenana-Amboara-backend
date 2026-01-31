@@ -1,0 +1,17 @@
+const mongoose = require('mongoose');
+
+const connectDB = async () => {
+  try {
+    const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/users_db';
+    
+    await mongoose.connect(mongoURI);
+    
+    console.log('✓ MongoDB connecté avec succès');
+    return mongoose.connection;
+  } catch (error) {
+    console.error('✗ Erreur de connexion MongoDB:', error.message);
+    process.exit(1);
+  }
+};
+
+module.exports = connectDB;
