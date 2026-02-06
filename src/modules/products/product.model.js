@@ -7,30 +7,30 @@ const productSchema = new mongoose.Schema(
       required: true
     },
 
-    nom: {
+    name: {
       type: String,
       required: true,
       index: true
     },
 
-    prix: {
+    price: {
       type: Number,
       required: true,
       min: 0
     },
 
-    typeProduitId: {
+    productTypeId: {
       type: String,
       required: true,
       ref: 'ProductType'
     },
 
-    boutique: {
+    shop: {
       _id: {
         type: String,
         required: true
       },
-      nom: {
+      name: {
         type: String,
         required: true
       }
@@ -72,6 +72,6 @@ const productSchema = new mongoose.Schema(
 );
 
 productSchema.index({ typeProduitId: 1 });
-productSchema.index({ 'attributes.MARQUE': 1 });
+productSchema.index({ 'attributes.BRAND': 1 });
 
 module.exports = mongoose.model('Product', productSchema);
