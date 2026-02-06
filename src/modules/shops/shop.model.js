@@ -7,7 +7,7 @@ const ShopSchema = new mongoose.Schema(
       required: true
     },
 
-    nom: {
+    name: {
       type: String,
       required: true,
       trim: true
@@ -26,4 +26,6 @@ const ShopSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model('Shop', ShopSchema);
+
+const Shop = mongoose.model('Shop', ShopSchema);
+module.exports = Shop;

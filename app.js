@@ -6,6 +6,7 @@ require('dotenv').config();
 // Importer les routes
 const userRoutes = require('./src/modules/users/user.routes');
 const boxRoutes = require('./src/modules/boxes/box.routes');
+const shopRoutes = require('./src/modules/shops/shop.routes');
 
 // Créer l'application Express
 const app = express();
@@ -17,7 +18,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // Routes
 app.use('/api/users', userRoutes);
-app.use('/api/box',boxRoutes)
+app.use('/api/box',boxRoutes);
+app.use('/api/shop',shopRoutes);
 
 // Route de base
 app.get('/', (req, res) => {
