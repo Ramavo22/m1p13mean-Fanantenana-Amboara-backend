@@ -44,3 +44,5 @@ coverage/
 # Optional: MacOS, Linux temp files
 *.swp
 *.swo
+
+/docs/
