@@ -1,4 +1,7 @@
+const jwt = require('jsonwebtoken');
 const userService = require('./user.service');
+
+const getJwtSecret = () => process.env.JWT_SECRET || 'change_this_secret';
 
 class UserController {
   // Créer un utilisateur
@@ -16,6 +19,41 @@ class UserController {
       return res.status(400).json({
         success: false,
         message: error.message || 'Erreur lors de la création de l\'utilisateur',
+      });
+    }
+  }
+
+  // Authentifier un utilisateur (login + password)
+  async login(req, res) {
+    try {
+      const { login, password } = req.body;
+
+      if (!login || !password) {
+        return res.status(400).json({
+          success: false,
+          message: 'Login et mot de passe requis',
+        });
+      }
+
+      const user = await userService.authenticateUser(login, password);
+
+      const token = jwt.sign(
+        { sub: user._id, login: user.login, role: user.role },
+        getJwtSecret(),
+        { expiresIn: process.env.JWT_EXPIRES_IN || '2h' }
+      );
+
+      return res.status(200).json({
+        success: true,
+        message: 'Authentification reussie',
+        token,
+        expiresIn: process.env.JWT_EXPIRES_IN || '2h',
+        user,
+      });
+    } catch (error) {
+      return res.status(401).json({
+        success: false,
+        message: error.message || 'Identifiants invalides',
       });
     }
   }

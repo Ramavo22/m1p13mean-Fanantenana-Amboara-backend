@@ -1,6 +1,7 @@
 const express = require('express');
 const userController = require('./user.controller');
 const UserDTO = require('./user.dto');
+const { authenticateToken } = require('../../middleware/auth.middleware');
 
 const router = express.Router();
 
@@ -17,6 +18,34 @@ const validateCreateUser = (req, res, next) => {
   req.body = UserDTO.createUserDTO(req.body);
   next();
 };
+
+/**
+ * @swagger
+ * /api/users/login:
+ *   post:
+ *     summary: Authentifier un utilisateur
+ *     tags: [Utilisateurs]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [login, password]
+ *             properties:
+ *               login:
+ *                 type: string
+ *                 example: john_doe
+ *               password:
+ *                 type: string
+ *                 example: password123
+ *     responses:
+ *       200:
+ *         description: Authentification reussie
+ *       401:
+ *         description: Identifiants invalides
+ */
+router.post('/login', (req, res) => userController.login(req, res));
 
 // Middleware de validation pour mettre à jour un utilisateur
 const validateUpdateUser = (req, res, next) => {
@@ -72,6 +101,8 @@ router.post('/', validateCreateUser, (req, res) => userController.create(req, re
  *   get:
  *     summary: Recuperer tous les utilisateurs
  *     tags: [Utilisateurs]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: query
  *         name: page
@@ -107,7 +138,7 @@ router.post('/', validateCreateUser, (req, res) => userController.create(req, re
  *       500:
  *         $ref: '#/components/responses/InternalServerError'
  */
-router.get('/', (req, res) => userController.getAll(req, res));
+router.get('/', authenticateToken, (req, res) => userController.getAll(req, res));
 
 /**
  * @swagger
@@ -115,6 +146,8 @@ router.get('/', (req, res) => userController.getAll(req, res));
  *   get:
  *     summary: Recuperer les utilisateurs par role
  *     tags: [Utilisateurs]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: role
@@ -135,7 +168,7 @@ router.get('/', (req, res) => userController.getAll(req, res));
  *       500:
  *         $ref: '#/components/responses/InternalServerError'
  */
-router.get('/role/:role', (req, res) => userController.getByRole(req, res));
+router.get('/role/:role', authenticateToken, (req, res) => userController.getByRole(req, res));
 
 /**
  * @swagger
@@ -143,6 +176,8 @@ router.get('/role/:role', (req, res) => userController.getByRole(req, res));
  *   get:
  *     summary: Recuperer les utilisateurs par statut
  *     tags: [Utilisateurs]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: status
@@ -163,7 +198,7 @@ router.get('/role/:role', (req, res) => userController.getByRole(req, res));
  *       500:
  *         $ref: '#/components/responses/InternalServerError'
  */
-router.get('/status/:status', (req, res) => userController.getByStatus(req, res));
+router.get('/status/:status', authenticateToken, (req, res) => userController.getByStatus(req, res));
 
 /**
  * @swagger
@@ -171,6 +206,8 @@ router.get('/status/:status', (req, res) => userController.getByStatus(req, res)
  *   get:
  *     summary: Recuperer un utilisateur par login
  *     tags: [Utilisateurs]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: login
@@ -190,7 +227,7 @@ router.get('/status/:status', (req, res) => userController.getByStatus(req, res)
  *       500:
  *         $ref: '#/components/responses/InternalServerError'
  */
-router.get('/login/:login', (req, res) => userController.getByLogin(req, res));
+router.get('/login/:login', authenticateToken, (req, res) => userController.getByLogin(req, res));
 
 /**
  * @swagger
@@ -198,6 +235,8 @@ router.get('/login/:login', (req, res) => userController.getByLogin(req, res));
  *   get:
  *     summary: Recuperer un utilisateur par ID
  *     tags: [Utilisateurs]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -217,7 +256,7 @@ router.get('/login/:login', (req, res) => userController.getByLogin(req, res));
  *       500:
  *         $ref: '#/components/responses/InternalServerError'
  */
-router.get('/:id', (req, res) => userController.getById(req, res));
+router.get('/:id', authenticateToken, (req, res) => userController.getById(req, res));
 
 /**
  * @swagger
@@ -225,6 +264,8 @@ router.get('/:id', (req, res) => userController.getById(req, res));
  *   put:
  *     summary: Mettre a jour un utilisateur
  *     tags: [Utilisateurs]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -252,7 +293,7 @@ router.get('/:id', (req, res) => userController.getById(req, res));
  *       500:
  *         $ref: '#/components/responses/InternalServerError'
  */
-router.put('/:id', validateUpdateUser, (req, res) => userController.update(req, res));
+router.put('/:id', authenticateToken, validateUpdateUser, (req, res) => userController.update(req, res));
 
 /**
  * @swagger
@@ -260,6 +301,8 @@ router.put('/:id', validateUpdateUser, (req, res) => userController.update(req, 
  *   patch:
  *     summary: Changer le statut d'un utilisateur
  *     tags: [Utilisateurs]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -293,7 +336,7 @@ router.put('/:id', validateUpdateUser, (req, res) => userController.update(req, 
  *       500:
  *         $ref: '#/components/responses/InternalServerError'
  */
-router.patch('/:id/status', (req, res) => userController.changeStatus(req, res));
+router.patch('/:id/status', authenticateToken, (req, res) => userController.changeStatus(req, res));
 
 /**
  * @swagger
@@ -301,6 +344,8 @@ router.patch('/:id/status', (req, res) => userController.changeStatus(req, res))
  *   patch:
  *     summary: Mettre a jour le solde d'un utilisateur
  *     tags: [Utilisateurs]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -333,7 +378,7 @@ router.patch('/:id/status', (req, res) => userController.changeStatus(req, res))
  *       500:
  *         $ref: '#/components/responses/InternalServerError'
  */
-router.patch('/:id/solde', (req, res) => userController.updateSolde(req, res));
+router.patch('/:id/solde', authenticateToken, (req, res) => userController.updateSolde(req, res));
 
 /**
  * @swagger
@@ -341,6 +386,8 @@ router.patch('/:id/solde', (req, res) => userController.updateSolde(req, res));
  *   delete:
  *     summary: Supprimer un utilisateur
  *     tags: [Utilisateurs]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -360,6 +407,6 @@ router.patch('/:id/solde', (req, res) => userController.updateSolde(req, res));
  *       500:
  *         $ref: '#/components/responses/InternalServerError'
  */
-router.delete('/:id', (req, res) => userController.delete(req, res));
+router.delete('/:id', authenticateToken, (req, res) => userController.delete(req, res));
 
 module.exports = router;
