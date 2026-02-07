@@ -221,16 +221,30 @@ class UserController {
   async updateSolde(req, res) {
     try {
       const { id } = req.params;
-      const { amount } = req.body;
+      const { amount, type } = req.body;
       
-      if (typeof amount !== 'number') {
+      if (typeof amount !== 'number' || Number.isNaN(amount)) {
         return res.status(400).json({
           success: false,
           message: 'Le montant doit être un nombre',
         });
       }
 
-      const user = await userService.updateUserSolde(id, amount);
+      if (amount <= 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Le montant doit être supérieur à zéro',
+        });
+      }
+
+      if (!['ACHAT', 'RECHARGE'].includes(type)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Type de transaction invalide',
+        });
+      }
+
+      const user = await userService.updateUserSolde(id, amount, type);
       
       return res.status(200).json({
         success: true,

@@ -1,5 +1,6 @@
 const bcrypt = require('bcryptjs');
 const userRepository = require('./user.repository');
+const transactionService = require('../transactions/transaction.service');
 
 class UserService {
   // Créer un utilisateur
@@ -123,22 +124,39 @@ class UserService {
   }
 
   // Mettre à jour le solde
-  async updateUserSolde(userId, amount) {
+  async updateUserSolde(userId, amount, type) {
     const user = await userRepository.findById(userId);
     if (!user) {
       throw new Error('Utilisateur non trouvé');
     }
 
+    if (!['ACHAT', 'RECHARGE'].includes(type)) {
+      throw new Error('Type de transaction invalide');
+    }
+
+    if (typeof amount !== 'number' || Number.isNaN(amount) || amount <= 0) {
+      throw new Error('Le montant doit être supérieur à zéro');
+    }
+
     const currentSolde = user.profile.solde || 0;
-    const newSolde = currentSolde + amount;
+    const delta = type === 'ACHAT' ? -amount : amount;
+    const newSolde = currentSolde + delta;
 
     if (newSolde < 0) {
       throw new Error('Solde insuffisant');
     }
 
-    return await userRepository.update(userId, {
+    const updatedUser = await userRepository.update(userId, {
       'profile.solde': newSolde,
     });
+
+    await transactionService.createTransaction({
+      type,
+      total: amount,
+      userId,
+    });
+
+    return updatedUser;
   }
 
   // Authentifier un utilisateur via login et mot de passe

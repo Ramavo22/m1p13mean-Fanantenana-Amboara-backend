@@ -3,7 +3,9 @@ const transactionRepository = require('./transaction.repository');
 class TransactionService {
     // Créer une nouvelle transaction
     async createTransaction(transactionData) {
-        if (transactionData.amount <= 0) {
+        const amount = transactionData.total ?? transactionData.amount;
+
+        if (typeof amount !== 'number' || Number.isNaN(amount) || amount <= 0) {
             throw new Error('Le montant de la transaction doit être supérieur à zéro');
         }
 
@@ -13,6 +15,10 @@ class TransactionService {
         
         if (!transactionData.userId) {
             throw new Error('L\'ID de l\'utilisateur est requis pour créer une transaction');
+        }
+
+        if (transactionData.total == null) {
+            transactionData.total = amount;
         }
 
         const transaction = await transactionRepository.create(transactionData);

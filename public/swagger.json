@@ -390,6 +390,16 @@
           }
         }
       },
+      "Forbidden": {
+        "description": "Acces refuse",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
       "NotFound": {
         "description": "Ressource non trouvee",
         "content": {
@@ -1090,7 +1100,7 @@
     },
     "/api/users/{id}/solde": {
       "patch": {
-        "summary": "Mettre a jour le solde d'un utilisateur",
+        "summary": "Mettre a jour le solde d'un utilisateur (ACHETEUR uniquement)",
         "tags": [
           "Utilisateurs"
         ],
@@ -1117,12 +1127,21 @@
               "schema": {
                 "type": "object",
                 "required": [
-                  "amount"
+                  "amount",
+                  "type"
                 ],
                 "properties": {
                   "amount": {
                     "type": "number",
                     "example": 1500.5
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "ACHAT",
+                      "RECHARGE"
+                    ],
+                    "example": "RECHARGE"
                   }
                 }
               }
@@ -1142,6 +1161,9 @@
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
           },
           "404": {
             "$ref": "#/components/responses/NotFound"
