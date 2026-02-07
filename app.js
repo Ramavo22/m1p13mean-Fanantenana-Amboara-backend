@@ -7,6 +7,10 @@ require('dotenv').config();
 
 // Importer les routes
 const userRoutes = require('./src/modules/users/user.routes');
+const boxRoutes = require('./src/modules/boxes/box.routes');
+const shopRoutes = require('./src/modules/shops/shop.routes');
+const productTypeRoutes = require('./src/modules/product-types/product-type.route');
+const productRoutes = require('./src/modules/products/product.routes');
 
 // Créer l'application Express
 const app = express();
@@ -29,6 +33,10 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs, {
 
 // Routes
 app.use('/api/users', userRoutes);
+app.use('/api/box',boxRoutes);
+app.use('/api/shop',shopRoutes);
+app.use('/api/product-type',productTypeRoutes);
+app.use('/api/product',productRoutes);
 
 // Route de base
 app.get('/', (req, res) => {
