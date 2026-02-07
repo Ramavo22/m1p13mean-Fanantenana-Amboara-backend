@@ -1,3 +1,4 @@
+const bcrypt = require('bcryptjs');
 const userRepository = require('./user.repository');
 
 class UserService {
@@ -17,9 +18,9 @@ class UserService {
       }
     }
 
-    // TODO: Hasher le mot de passe avant de sauvegarder
-    // const hashedPassword = await bcrypt.hash(userData.password, 10);
-    // userData.password = hashedPassword;
+    // Hasher le mot de passe avant de sauvegarder
+    const hashedPassword = await bcrypt.hash(userData.password, 10);
+    userData.password = hashedPassword;
 
     return await userRepository.create(userData);
   }
@@ -69,6 +70,11 @@ class UserService {
       if (emailExists) {
         throw new Error('Cet email est déjà utilisé');
       }
+    }
+
+    if (updateData.password) {
+      const hashedPassword = await bcrypt.hash(updateData.password, 10);
+      updateData.password = hashedPassword;
     }
 
     return await userRepository.update(userId, updateData);
@@ -133,6 +139,27 @@ class UserService {
     return await userRepository.update(userId, {
       'profile.solde': newSolde,
     });
+  }
+
+  // Authentifier un utilisateur via login et mot de passe
+  async authenticateUser(login, password) {
+    const user = await userRepository.findByLoginWithPassword(login);
+    if (!user) {
+      throw new Error('Identifiants invalides');
+    }
+
+    if (user.status !== 'ACTIVE') {
+      throw new Error('Compte inactif');
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      throw new Error('Identifiants invalides');
+    }
+
+    const userData = user.toObject();
+    delete userData.password;
+    return userData;
   }
 }
 
