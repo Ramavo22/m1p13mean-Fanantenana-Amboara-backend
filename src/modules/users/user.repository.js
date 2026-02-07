@@ -14,6 +14,11 @@ class UserRepository {
 
   // Récupérer un utilisateur par login
   async findByLogin(login) {
+    return await User.findOne({ login }).select('-password');
+  }
+
+  // Récupérer un utilisateur par login (avec mot de passe pour auth)
+  async findByLoginWithPassword(login) {
     return await User.findOne({ login });
   }
 

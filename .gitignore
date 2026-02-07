@@ -45,4 +45,5 @@ coverage/
 *.swp
 *.swo
 
+/docs/
 personal.md
