@@ -1,5 +1,10 @@
 const swaggerJsdoc = require('swagger-jsdoc');
 
+// Déterminer l'URL du serveur pour la documentation Swagger.
+// Utiliser la variable d'environnement `SWAGGER_BASE_URL` si fournie.
+// En production (ex: Vercel) utiliser '/' pour des requêtes relatives.
+const serverUrl = process.env.SWAGGER_BASE_URL || (process.env.NODE_ENV === 'production' ? '/' : `http://localhost:${process.env.PORT || 3000}`);
+
 const options = {
   definition: {
     openapi: '3.0.0',
@@ -14,8 +19,8 @@ const options = {
     },
     servers: [
       {
-        url: `http://localhost:${process.env.PORT || 3000}`,
-        description: 'Serveur de developpement',
+        url: serverUrl,
+        description: process.env.NODE_ENV === 'production' ? 'Serveur' : 'Serveur de developpement',
       },
     ],
     components: {
