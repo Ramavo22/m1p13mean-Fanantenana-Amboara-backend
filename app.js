@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 const swaggerUi = require('swagger-ui-express');
 const swaggerDocs = require('./src/config/swagger');
 require('dotenv').config();
+const path = require('path');
 
 // Importer les routes
 const userRoutes = require('./src/modules/users/user.routes');
@@ -17,6 +18,8 @@ const app = express();
 
 // Middleware
 app.use(cors());
+// Servir les fichiers statiques (pour la page statique /api-docs et swagger.json)
+app.use(express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
