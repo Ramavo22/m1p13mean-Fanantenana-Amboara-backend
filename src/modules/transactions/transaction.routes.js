@@ -10,6 +10,8 @@ const router = express.Router();
  *   post:
  *     summary: Creer une nouvelle transaction
  *     tags: [Transactions]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -40,6 +42,8 @@ router.post('/', authenticateToken, (req, res) => transactionController.create(r
  *   get:
  *     summary: Recuperer les transactions d'un utilisateur
  *     tags: [Transactions]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -79,6 +83,8 @@ router.get('/user/:userId', authenticateToken, (req, res) => transactionControll
  *   get:
  *     summary: Recuperer une transaction par ID
  *     tags: [Transactions]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -108,6 +114,8 @@ router.get('/:id', authenticateToken, (req, res) => transactionController.getByI
  *   get:
  *     summary: Recuperer toutes les transactions
  *     tags: [Transactions]
+ *     security:
+ *      - bearerAuth: []
  *     parameters:
  *       - in: query
  *         name: page

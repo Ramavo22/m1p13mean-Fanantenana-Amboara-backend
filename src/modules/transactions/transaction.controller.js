@@ -29,7 +29,8 @@ class TransactionController {
             return res.status(200).json({
                 success: true,
                 message: 'Transactions récupérées avec succès',
-                data: transactions,
+                data: transactions.data,
+                pagination: transactions.pagination,
             });
         } catch (error) {
             return res.status(400).json({
@@ -48,7 +49,8 @@ class TransactionController {
             return res.status(200).json({
                 success: true,
                 message: 'Transactions récupérées avec succès',
-                data: transactions,
+                data: transactions.data,
+                pagination: transactions.pagination,
             });
         } catch (error) {
             return res.status(400).json({
