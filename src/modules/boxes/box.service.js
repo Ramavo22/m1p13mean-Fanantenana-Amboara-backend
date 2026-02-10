@@ -1,15 +1,57 @@
 const boxRepository = require('./box.repository');
+const userRepository = require('../users/user.repository');
+const BoxUtils = require('./box.utils');
 
 class BoxService {
 
-  // Créer une box
-  async createBox(boxData) {
-
-    // Validation champs obligatoires
-    if (!boxData._id) {
-      throw new Error('L’identifiant de la box est obligatoire');
+  async assignateOrDesassignateUserToBox(assignationInformation) {
+    const box = await boxRepository.findById(assignationInformation.boxId);
+    if (!box) {
+      throw new Error("la box n'est pas trouvée");
     }
 
+    let user = null;
+
+    if (assignationInformation.isAssignate) {
+      // 🔒 ASSIGNATION
+
+      if (box.userId) {
+        throw new Error("la box est déjà assignée");
+      }
+      if (!BoxUtils.validateStateChange(box.state, 'RENTED')) {
+        throw new Error('Impossible d’assigner une box dans cet état');
+      }
+
+      user = await userRepository.findById(assignationInformation.userId);
+      if (!user) {
+        throw new Error("l'utilisateur n'est pas trouvé");
+      }
+
+      box.userId = user._id;
+      box.state = 'RENTED';
+
+    } else {
+      // 🔓 DÉSAFFECTATION
+
+      if (!box.userId) {
+        throw new Error("la box n'est pas assignée");
+      }
+
+      if (!BoxUtils.validateStateChange(box.state, 'AVAILABLE')) {
+        throw new Error('Impossible de désassigner une box dans cet état');
+      }
+
+      box.userId = null;
+      box.state = 'AVAILABLE';
+    }
+
+    const boxUpdated = await boxRepository.update(box._id, box);
+    const isAssignate = assignationInformation.isAssignate
+    return { boxUpdated, isAssignate };
+  }
+
+
+  async createBox(boxData) {
     if (!boxData.label) {
       throw new Error('Le label est obligatoire');
     }
@@ -18,13 +60,10 @@ class BoxService {
       throw new Error('Le prix de location doit être supérieur à 0');
     }
 
-    // Validation state
-    const validStates = ['AVAILABLE', 'RENTED', 'REPAIR'];
-    if (boxData.state && !validStates.includes(boxData.state)) {
+    if (boxData.state && !BoxUtils.validateState(boxData.state)) {
       throw new Error('État de box invalide');
     }
 
-    // Vérifier unicité de l'ID
     const existingBox = await boxRepository.findById(boxData._id);
     if (existingBox) {
       throw new Error('Une box avec cet identifiant existe déjà');
@@ -33,12 +72,10 @@ class BoxService {
     return await boxRepository.create(boxData);
   }
 
-  // Récupérer toutes les box
-  async getAllBoxes() {
-    return await boxRepository.findAll();
+  async getAllBoxes(params) {
+    return await boxRepository.findAll(params);
   }
 
-  // Récupérer une box par ID
   async getBoxById(boxId) {
     const box = await boxRepository.findById(boxId);
     if (!box) {
@@ -47,28 +84,22 @@ class BoxService {
     return box;
   }
 
-  // Mettre à jour une box
   async updateBox(boxId, updateData) {
-
     const box = await boxRepository.findById(boxId);
     if (!box) {
       throw new Error('Box non trouvée');
     }
 
-    // Validation state
     if (updateData.state) {
-      const validStates = ['AVAILABLE', 'RENTED', 'REPAIR'];
-      if (!validStates.includes(updateData.state)) {
+      if (!BoxUtils.validateState(updateData.state)) {
         throw new Error('État de box invalide');
       }
 
-      // Règle métier exemple
-      if (box.state === 'REPAIR' && updateData.state === 'RENTED') {
-        throw new Error('Une box en réparation ne peut pas être louée');
+      if (!BoxUtils.validateStateChange(box.state, updateData.state)) {
+        throw new Error('Transition d’état non autorisée');
       }
     }
 
-    // Validation rent
     if (updateData.rent != null && updateData.rent <= 0) {
       throw new Error('Le prix de location doit être supérieur à 0');
     }
@@ -76,15 +107,12 @@ class BoxService {
     return await boxRepository.update(boxId, updateData);
   }
 
-  // Supprimer une box
   async deleteBox(boxId) {
-
     const box = await boxRepository.findById(boxId);
     if (!box) {
       throw new Error('Box non trouvée');
     }
 
-    // Optionnel : interdire suppression si louée
     if (box.state === 'RENTED') {
       throw new Error('Impossible de supprimer une box en cours de location');
     }
@@ -92,11 +120,8 @@ class BoxService {
     return await boxRepository.delete(boxId);
   }
 
-  // Changer l’état d’une box
   async changeBoxState(boxId, newState) {
-
-    const validStates = ['AVAILABLE', 'RENTED', 'REPAIR'];
-    if (!validStates.includes(newState)) {
+    if (!BoxUtils.validateState(newState)) {
       throw new Error('État de box invalide');
     }
 
@@ -105,8 +130,8 @@ class BoxService {
       throw new Error('Box non trouvée');
     }
 
-    if (box.state === 'REPAIR' && newState === 'RENTED') {
-      throw new Error('Une box en réparation ne peut pas être louée');
+    if (!BoxUtils.validateStateChange(box.state, newState)) {
+      throw new Error('Transition d’état non autorisée');
     }
 
     return await boxRepository.update(boxId, { state: newState });

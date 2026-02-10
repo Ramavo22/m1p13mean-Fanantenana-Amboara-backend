@@ -2,29 +2,30 @@ const mongoose = require('mongoose');
 
 const boxSchema = new mongoose.Schema(
     {
-        _id: {
-            type: String,
-            required: true
-        },
-
         label: {
             type: String,
             require: true
         },
         state: {
             type: String,
-            enum: ['AVAILABLE','RENTED','REPAIR'],
+            enum: ['AVAILABLE', 'RENTED', 'REPAIR'],
             default: 'AVAILABLE',
         },
         rent: {
             type: Number,
             require: true
         },
+        userId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+            required: false
+
+        }
     },
-    { 
-        timestamps: true 
+    {
+        timestamps: true
     }
 )
 
-const Boxes = mongoose.model('Boxes',boxSchema);
-module.exports = Boxes;
+const Box = mongoose.model('Box', boxSchema); // nom du modèle = Box
+module.exports = Box;

@@ -1,5 +1,5 @@
 const productRepository = require('./product.repository');
-const ProductUtils = require('../../utils/product.utils');
+const ProductUtils = require('./product.utils');
 const shopRepository = require('../shops/shop.repository');
 
 class ProductService {
