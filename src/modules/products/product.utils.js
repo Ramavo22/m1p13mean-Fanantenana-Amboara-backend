@@ -1,4 +1,4 @@
-const productTypeRepository = require('../modules/product-types/product-type.repository');
+const productTypeRepository = require('../product-types/product-type.repository');
 
 class ProductUtils {
 
