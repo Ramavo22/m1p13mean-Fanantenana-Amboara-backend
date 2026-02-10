@@ -23,9 +23,12 @@ class TransactionController {
     async getUserTransactions(req, res) {
         try {
             const userId = req.params.userId;
+            const type = req.query.type;
+            const startDate = req.query.startDate;
+            const endDate = req.query.endDate;
             const page = parseInt(req.query.page, 10) || 1;
             const limit = parseInt(req.query.limit, 10) || 10;
-            const transactions = await transactionService.getTransactionsByUserId(userId, page, limit);
+            const transactions = await transactionService.getTransactionsByUserId(userId, type, startDate, endDate, page, limit);
             return res.status(200).json({
                 success: true,
                 message: 'Transactions récupérées avec succès',
@@ -43,9 +46,12 @@ class TransactionController {
     // Récupérer toutes les transactions    
     async getAll(req, res) {
         try {
+            const type = req.query.type;
+            const startDate = req.query.startDate;
+            const endDate = req.query.endDate;
             const page = parseInt(req.query.page, 10) || 1;
             const limit = parseInt(req.query.limit, 10) || 10;
-            const transactions = await transactionService.getAllTransactions(page, limit);
+            const transactions = await transactionService.getAllTransactions(type, startDate, endDate, page, limit);
             return res.status(200).json({
                 success: true,
                 message: 'Transactions récupérées avec succès',

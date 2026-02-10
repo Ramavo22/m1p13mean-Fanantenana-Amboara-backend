@@ -33,15 +33,40 @@ class TransactionService {
         }     return transaction;
     }
 
-    // Récupérer toutes les transactions d'un utilisateur
-    async getTransactionsByUserId(userId, page = 1, limit = 10) {
-        return await transactionRepository.findByUserId(userId, page, limit);
+    // Récupérer toutes les transactions filtrées d'un utilisateur
+    async getTransactionsByUserId(userId, type, startDate, endDate, page = 1, limit = 10) {
+        await this.validateTransactionFilters(type, startDate, endDate);
+        return await transactionRepository.findByUserId(userId, type, startDate, endDate, page, limit);
     }
 
-    // Récupérer toutes les transactions
-    async getAllTransactions(page = 1, limit = 10) {
-        return await transactionRepository.findAll(page, limit);
+    // Récupérer toutes les transactions filtrées
+    async getAllTransactions(type, startDate, endDate, page = 1, limit = 10) {
+        await this.validateTransactionFilters(type, startDate, endDate);
+        return await transactionRepository.findAll(type, startDate, endDate, page, limit);
     }
+
+    async validateTransactionFilters(type, startDate, endDate) {
+        const validTypes = ['ACHAT', 'LOYER', 'RECHARGE'];
+
+        if (type && !validTypes.includes(type)) {
+          throw new Error("Type de transaction invalide");
+        }
+
+        if (startDate && isNaN(Date.parse(startDate))) {
+          throw new Error("Date de début invalide");
+        }
+
+        if (endDate && isNaN(Date.parse(endDate))) {
+          throw new Error("Date de fin invalide");
+        }
+
+        if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
+          throw new Error(
+            "La date de début doit être antérieure à la date de fin"
+          );
+        }
+    }
+
 }
 
 module.exports = new TransactionService();

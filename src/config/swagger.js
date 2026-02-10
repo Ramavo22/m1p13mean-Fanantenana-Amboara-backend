@@ -262,7 +262,11 @@ const options = {
           properties: {
             success: { type: 'boolean' },
             message: { type: 'string' },
-            data: { $ref: '#/components/schemas/TransactionListPaged' },
+            data: {
+              type: 'array',
+              items: { $ref: '#/components/schemas/Transaction' },
+            },
+            pagination: { $ref: '#/components/schemas/Pagination' },
           },
         },
         ApiResponseMessage: {

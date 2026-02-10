@@ -12,14 +12,19 @@ class TransactionRepository {
         return await Transaction.findById(transactionId);
     }
 
-    // Récupérer toutes les transactions d'un utilisateur
-    async findByUserId(userId, page = 1, limit = 10) {
+    // Récupérer toutes les transactions filtrées d'un utilisateur
+    async findByUserId(userId, type, startDate, endDate, page = 1, limit = 10) {
         const skip = (page - 1) * limit;
-        const transactions = await Transaction.find({ userId })
+        const filter = { userId };
+        if (type) filter.type = type;
+        if (startDate || endDate) filter.date = {};
+        if (startDate) filter.date.$gte = new Date(startDate);
+        if (endDate) filter.date.$lte = new Date(endDate);
+        const transactions = await Transaction.find(filter)
             .skip(skip)
             .limit(limit)
             .sort({ date: -1 });
-        const total = await Transaction.countDocuments({ userId });
+        const total = await Transaction.countDocuments(filter);
         return {
             data: transactions,
             pagination: {
@@ -31,14 +36,19 @@ class TransactionRepository {
         };
     }
 
-    // Récupérer toutes les transactions
-    async findAll(page = 1, limit = 10) {
+    // Récupérer toutes les transactions filtrées
+    async findAll(type, startDate, endDate, page = 1, limit = 10) {
         const skip = (page - 1) * limit;
-        const transactions = await Transaction.find()
+        const filter = {};
+        if (type) filter.type = type;
+        if (startDate || endDate) filter.date = {};
+        if (startDate) filter.date.$gte = new Date(startDate);
+        if (endDate) filter.date.$lte = new Date(endDate);
+        const transactions = await Transaction.find(filter)
             .skip(skip)
             .limit(limit)
             .sort({ date: -1 });
-        const total = await Transaction.countDocuments();
+        const total = await Transaction.countDocuments(filter);
         return {
             data: transactions,
             pagination: {

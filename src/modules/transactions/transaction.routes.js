@@ -63,6 +63,24 @@ router.post('/', authenticateToken, (req, res) => transactionController.create(r
  *           type: integer
  *           default: 10
  *         description: Nombre d'elements par page
+ *       - in: query
+ *         name: type
+ *         schema:
+ *           type: string
+ *           enum: [ACHAT, RECHARGE, LOYER]
+ *         description: Filtrer par type de transaction
+ *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *           format: date-time
+ *         description: Date de debut (ISO 8601)
+ *       - in: query
+ *         name: endDate
+ *         schema:
+ *           type: string
+ *           format: date-time
+ *         description: Date de fin (ISO 8601)
  *     responses:
  *       200:
  *         description: Transactions recuperees avec succes
@@ -129,6 +147,24 @@ router.get('/:id', authenticateToken, (req, res) => transactionController.getByI
  *           type: integer
  *           default: 10
  *         description: Nombre d'elements par page
+ *       - in: query
+ *         name: type
+ *         schema:
+ *           type: string
+ *           enum: [ACHAT, RECHARGE, LOYER]
+ *         description: Filtrer par type de transaction
+ *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *           format: date-time
+ *         description: Date de debut (ISO 8601)
+ *       - in: query
+ *         name: endDate
+ *         schema:
+ *           type: string
+ *           format: date-time
+ *         description: Date de fin (ISO 8601)
  *     responses:
  *       200:
  *         description: Transactions recuperees avec succes
