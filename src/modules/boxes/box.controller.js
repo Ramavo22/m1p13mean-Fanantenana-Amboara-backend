@@ -2,6 +2,23 @@ const boxService = require('./box.service');
 
 class BoxController {
 
+
+  async assignateBoxToUser(req,res){
+    try{
+      const assignationData = req.body; 
+      const {boxUpdated, isAssignate} = await boxService.assignateOrDesassignateUserToBox(assignationData);
+      return res.status(200).json({
+        message: `La box "${boxUpdated.label} a été ${isAssignate ? "assignée" : "désassignée"} avec succèss"`
+      })
+    }
+    catch(error){
+      return res.status(400).json({
+        success: false,
+        message: error.message
+      })
+    }
+  }
+
   // Créer une box
   async create(req, res) {
     try {
@@ -21,6 +38,41 @@ class BoxController {
     }
   }
 
+  // Récupérer toutes les box
+  async getAll(req, res) {
+    try {
+      const {
+        page = 1,
+        limit = 10,
+        state,
+        search
+      } = req.query;
+
+      const result = await boxService.getAllBoxes({
+        page: Number(page),
+        limit: Number(limit),
+        state,
+        search,
+      });
+
+      return res.status(200).json({
+        success: true,
+        data: result.data,
+        pagination: {
+          page: result.page,
+          limit: result.limit,
+          total: result.total,
+          pages: result.pages,
+        },
+      });
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message: error.message || 'Erreur lors de la récupération des boxes',
+      });
+    }
+  }
+
   // Récupérer une box par ID
   async getById(req, res) {
     try {
@@ -35,23 +87,6 @@ class BoxController {
       return res.status(404).json({
         success: false,
         message: error.message || 'Box non trouvée',
-      });
-    }
-  }
-
-  // Récupérer toutes les box
-  async getAll(req, res) {
-    try {
-      const boxes = await boxService.getAllBoxes();
-
-      return res.status(200).json({
-        success: true,
-        data: boxes,
-      });
-    } catch (error) {
-      return res.status(500).json({
-        success: false,
-        message: error.message || 'Erreur lors de la récupération des box',
       });
     }
   }
