@@ -1,7 +1,7 @@
 const express = require('express');
 const userController = require('./user.controller');
 const UserDTO = require('./user.dto');
-const { authenticateToken } = require('../../middleware/auth.middleware');
+const { authenticateToken, authorizeRoles } = require('../../middleware/auth.middleware');
 
 const router = express.Router();
 
@@ -342,7 +342,7 @@ router.patch('/:id/status', authenticateToken, (req, res) => userController.chan
  * @swagger
  * /api/users/{id}/solde:
  *   patch:
- *     summary: Mettre a jour le solde d'un utilisateur
+ *     summary: Mettre a jour le solde d'un utilisateur (ACHETEUR uniquement)
  *     tags: [Utilisateurs]
  *     security:
  *       - bearerAuth: []
@@ -359,11 +359,15 @@ router.patch('/:id/status', authenticateToken, (req, res) => userController.chan
  *         application/json:
  *           schema:
  *             type: object
- *             required: [amount]
+ *             required: [amount, type]
  *             properties:
  *               amount:
  *                 type: number
  *                 example: 1500.5
+ *               type:
+ *                 type: string
+ *                 enum: [ACHAT, RECHARGE]
+ *                 example: RECHARGE
  *     responses:
  *       200:
  *         description: Solde mis a jour avec succes
@@ -373,12 +377,14 @@ router.patch('/:id/status', authenticateToken, (req, res) => userController.chan
  *               $ref: '#/components/schemas/ApiResponseUser'
  *       400:
  *         $ref: '#/components/responses/BadRequest'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  *       404:
  *         $ref: '#/components/responses/NotFound'
  *       500:
  *         $ref: '#/components/responses/InternalServerError'
  */
-router.patch('/:id/solde', authenticateToken, (req, res) => userController.updateSolde(req, res));
+router.patch('/:id/solde', authenticateToken, authorizeRoles('ACHETEUR'), (req, res) => userController.updateSolde(req, res));
 
 /**
  * @swagger

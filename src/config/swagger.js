@@ -19,8 +19,8 @@ const options = {
     },
     servers: [
       {
-        url: serverUrl,
-        description: process.env.NODE_ENV === 'production' ? 'Serveur' : 'Serveur de developpement',
+        url: `http://localhost:${process.env.PORT || 5000}`,
+        description: 'Serveur de developpement',
       },
     ],
     components: {
@@ -146,6 +146,76 @@ const options = {
             },
           },
         },
+        Transaction: {
+          type: 'object',
+          properties: {
+            _id: {
+              type: 'string',
+              description: 'ID unique de la transaction',
+            },
+            type: {
+              type: 'string',
+              enum: ['ACHAT', 'RECHARGE', 'LOYER'],
+              description: 'Type de transaction',
+            },
+            total: {
+              type: 'number',
+              description: 'Montant total de la transaction',
+              example: 120.5,
+            },
+            date: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Date de la transaction',
+            },
+            userId: {
+              type: 'string',
+              description: "ID de l'utilisateur",
+            },
+            createdAt: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Date de creation',
+            },
+            updatedAt: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Date de modification',
+            },
+          },
+        },
+        TransactionCreate: {
+          type: 'object',
+          required: ['type', 'total', 'userId'],
+          properties: {
+            type: {
+              type: 'string',
+              enum: ['ACHAT', 'RECHARGE', 'LOYER'],
+              description: 'Type de transaction',
+            },
+            total: {
+              type: 'number',
+              minimum: 0,
+              description: 'Montant total de la transaction',
+              example: 120.5,
+            },
+            userId: {
+              type: 'string',
+              description: "ID de l'utilisateur",
+              example: '66b2f0d8cdbd8f1a9d2f1c11',
+            },
+          },
+        },
+        TransactionListPaged: {
+          type: 'object',
+          properties: {
+            data: {
+              type: 'array',
+              items: { $ref: '#/components/schemas/Transaction' },
+            },
+            pagination: { $ref: '#/components/schemas/Pagination' },
+          },
+        },
         Pagination: {
           type: 'object',
           properties: {
@@ -161,6 +231,14 @@ const options = {
             success: { type: 'boolean' },
             message: { type: 'string' },
             data: { $ref: '#/components/schemas/UserResponse' },
+          },
+        },
+        ApiResponseTransaction: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+            data: { $ref: '#/components/schemas/Transaction' },
           },
         },
         ApiResponseUserList: {
@@ -180,6 +258,18 @@ const options = {
             data: {
               type: 'array',
               items: { $ref: '#/components/schemas/UserResponse' },
+            },
+            pagination: { $ref: '#/components/schemas/Pagination' },
+          },
+        },
+        ApiResponseTransactionListPaged: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+            data: {
+              type: 'array',
+              items: { $ref: '#/components/schemas/Transaction' },
             },
             pagination: { $ref: '#/components/schemas/Pagination' },
           },
@@ -212,6 +302,16 @@ const options = {
       responses: {
         BadRequest: {
           description: 'Requete invalide',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/Error',
+              },
+            },
+          },
+        },
+        Forbidden: {
+          description: 'Acces refuse',
           content: {
             'application/json': {
               schema: {

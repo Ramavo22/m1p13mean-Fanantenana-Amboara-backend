@@ -11,7 +11,7 @@
   },
   "servers": [
     {
-      "url": "http://localhost:3000",
+      "url": "http://localhost:5000",
       "description": "Serveur de developpement"
     }
   ],
@@ -170,6 +170,92 @@
           }
         }
       },
+      "Transaction": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "description": "ID unique de la transaction"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "ACHAT",
+              "RECHARGE",
+              "LOYER"
+            ],
+            "description": "Type de transaction"
+          },
+          "total": {
+            "type": "number",
+            "description": "Montant total de la transaction",
+            "example": 120.5
+          },
+          "date": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Date de la transaction"
+          },
+          "userId": {
+            "type": "string",
+            "description": "ID de l'utilisateur"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Date de creation"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Date de modification"
+          }
+        }
+      },
+      "TransactionCreate": {
+        "type": "object",
+        "required": [
+          "type",
+          "total",
+          "userId"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "ACHAT",
+              "RECHARGE",
+              "LOYER"
+            ],
+            "description": "Type de transaction"
+          },
+          "total": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Montant total de la transaction",
+            "example": 120.5
+          },
+          "userId": {
+            "type": "string",
+            "description": "ID de l'utilisateur",
+            "example": "66b2f0d8cdbd8f1a9d2f1c11"
+          }
+        }
+      },
+      "TransactionListPaged": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Transaction"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination"
+          }
+        }
+      },
       "Pagination": {
         "type": "object",
         "properties": {
@@ -205,6 +291,20 @@
           }
         }
       },
+      "ApiResponseTransaction": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/Transaction"
+          }
+        }
+      },
       "ApiResponseUserList": {
         "type": "object",
         "properties": {
@@ -229,6 +329,26 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/UserResponse"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination"
+          }
+        }
+      },
+      "ApiResponseTransactionListPaged": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Transaction"
             }
           },
           "pagination": {
@@ -276,6 +396,16 @@
           }
         }
       },
+      "Forbidden": {
+        "description": "Acces refuse",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
       "NotFound": {
         "description": "Ressource non trouvee",
         "content": {
@@ -299,6 +429,265 @@
     }
   },
   "paths": {
+    "/api/transactions": {
+      "post": {
+        "summary": "Creer une nouvelle transaction",
+        "tags": [
+          "Transactions"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransactionCreate"
+              },
+              "example": {
+                "type": "ACHAT",
+                "total": 120.5,
+                "userId": "66b2f0d8cdbd8f1a9d2f1c11"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Transaction creee avec succes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseTransaction"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "get": {
+        "summary": "Recuperer toutes les transactions",
+        "tags": [
+          "Transactions"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            },
+            "description": "Numero de page"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            },
+            "description": "Nombre d'elements par page"
+          },
+          {
+            "in": "query",
+            "name": "type",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ACHAT",
+                "RECHARGE",
+                "LOYER"
+              ]
+            },
+            "description": "Filtrer par type de transaction"
+          },
+          {
+            "in": "query",
+            "name": "startDate",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "description": "Date de debut (ISO 8601)"
+          },
+          {
+            "in": "query",
+            "name": "endDate",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "description": "Date de fin (ISO 8601)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Transactions recuperees avec succes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseTransactionListPaged"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/api/transactions/user/{userId}": {
+      "get": {
+        "summary": "Recuperer les transactions d'un utilisateur",
+        "tags": [
+          "Transactions"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID de l'utilisateur"
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            },
+            "description": "Numero de page"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            },
+            "description": "Nombre d'elements par page"
+          },
+          {
+            "in": "query",
+            "name": "type",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ACHAT",
+                "RECHARGE",
+                "LOYER"
+              ]
+            },
+            "description": "Filtrer par type de transaction"
+          },
+          {
+            "in": "query",
+            "name": "startDate",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "description": "Date de debut (ISO 8601)"
+          },
+          {
+            "in": "query",
+            "name": "endDate",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "description": "Date de fin (ISO 8601)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Transactions recuperees avec succes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseTransactionListPaged"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/api/transactions/{id}": {
+      "get": {
+        "summary": "Recuperer une transaction par ID",
+        "tags": [
+          "Transactions"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID de la transaction"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Transaction recuperee avec succes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseTransaction"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
     "/api/users/login": {
       "post": {
         "summary": "Authentifier un utilisateur",
@@ -799,7 +1188,7 @@
     },
     "/api/users/{id}/solde": {
       "patch": {
-        "summary": "Mettre a jour le solde d'un utilisateur",
+        "summary": "Mettre a jour le solde d'un utilisateur (ACHETEUR uniquement)",
         "tags": [
           "Utilisateurs"
         ],
@@ -826,12 +1215,21 @@
               "schema": {
                 "type": "object",
                 "required": [
-                  "amount"
+                  "amount",
+                  "type"
                 ],
                 "properties": {
                   "amount": {
                     "type": "number",
                     "example": 1500.5
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "ACHAT",
+                      "RECHARGE"
+                    ],
+                    "example": "RECHARGE"
                   }
                 }
               }
@@ -851,6 +1249,9 @@
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
           },
           "404": {
             "$ref": "#/components/responses/NotFound"
