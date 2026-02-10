@@ -6,10 +6,6 @@ class BoxService {
   async createBox(boxData) {
 
     // Validation champs obligatoires
-    if (!boxData._id) {
-      throw new Error('L’identifiant de la box est obligatoire');
-    }
-
     if (!boxData.label) {
       throw new Error('Le label est obligatoire');
     }
@@ -34,8 +30,8 @@ class BoxService {
   }
 
   // Récupérer toutes les box
-  async getAllBoxes() {
-    return await boxRepository.findAll();
+  async getAllBoxes(params) {
+    return await boxRepository.findAll(params);
   }
 
   // Récupérer une box par ID

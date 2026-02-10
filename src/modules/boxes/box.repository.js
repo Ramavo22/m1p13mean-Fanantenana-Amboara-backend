@@ -1,4 +1,4 @@
-const Box = require('./box.model');
+const Box = require('./box.model'); // <-- importe le modèle correctement
 
 class BoxRepository {
 
@@ -7,8 +7,24 @@ class BoxRepository {
     return box.save();
   }
 
-  async findAll() {
-    return Box.find();
+  async findAll({ page = 1, limit = 10, state, search } = {}) {
+    const skip = (page - 1) * limit;
+    const filter = {};
+    if (state) filter.state = state;
+    if (search) filter.label = { $regex: search, $options: 'i' };
+
+    const [data, total] = await Promise.all([
+      Box.find(filter).skip(skip).limit(limit).sort({ createdAt: -1 }),
+      Box.countDocuments(filter),
+    ]);
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+      pages: Math.ceil(total / limit),
+    };
   }
 
   async findById(id) {

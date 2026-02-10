@@ -2,11 +2,6 @@ const mongoose = require('mongoose');
 
 const boxSchema = new mongoose.Schema(
     {
-        _id: {
-            type: String,
-            required: true
-        },
-
         label: {
             type: String,
             require: true
@@ -26,5 +21,5 @@ const boxSchema = new mongoose.Schema(
     }
 )
 
-const Boxes = mongoose.model('Boxes',boxSchema);
-module.exports = Boxes;
+const Box = mongoose.model('Box', boxSchema); // nom du modèle = Box
+module.exports = Box;
