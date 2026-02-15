@@ -32,6 +32,143 @@ const options = {
         },
       },
       schemas: {
+        Box: {
+          type: 'object',
+          properties: {
+            _id: {
+              type: 'string',
+              description: 'ID unique de la box',
+              example: '66b2f0d8cdbd8f1a9d2f1c33',
+            },
+            label: {
+              type: 'string',
+              description: 'Libelle de la box',
+              example: 'Box A1',
+            },
+            state: {
+              type: 'string',
+              enum: ['AVAILABLE', 'RENTED', 'REPAIR'],
+              description: 'Etat de la box',
+              example: 'AVAILABLE',
+            },
+            rent: {
+              type: 'number',
+              description: 'Prix de location',
+              example: 1500,
+            },
+            userId: {
+              type: 'string',
+              description: 'ID utilisateur assigne',
+              nullable: true,
+              example: '66b2f0d8cdbd8f1a9d2f1c11',
+            },
+            createdAt: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Date de creation',
+            },
+            updatedAt: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Date de modification',
+            },
+          },
+        },
+        BoxCreate: {
+          type: 'object',
+          required: ['_id', 'label', 'rent'],
+          properties: {
+            _id: {
+              type: 'string',
+              description: 'ID unique de la box',
+              example: '66b2f0d8cdbd8f1a9d2f1c33',
+            },
+            label: {
+              type: 'string',
+              description: 'Libelle de la box',
+              example: 'Box A1',
+            },
+            rent: {
+              type: 'number',
+              minimum: 0,
+              description: 'Prix de location',
+              example: 1500,
+            },
+            state: {
+              type: 'string',
+              enum: ['AVAILABLE', 'RENTED', 'REPAIR'],
+              description: 'Etat de la box',
+              example: 'AVAILABLE',
+            },
+            userId: {
+              type: 'string',
+              description: 'ID utilisateur assigne',
+              nullable: true,
+              example: '66b2f0d8cdbd8f1a9d2f1c11',
+            },
+          },
+        },
+        BoxUpdate: {
+          type: 'object',
+          properties: {
+            label: {
+              type: 'string',
+              description: 'Libelle de la box',
+              example: 'Box A1',
+            },
+            rent: {
+              type: 'number',
+              minimum: 0,
+              description: 'Prix de location',
+              example: 1500,
+            },
+            state: {
+              type: 'string',
+              enum: ['AVAILABLE', 'RENTED', 'REPAIR'],
+              description: 'Etat de la box',
+              example: 'REPAIR',
+            },
+            userId: {
+              type: 'string',
+              description: 'ID utilisateur assigne',
+              nullable: true,
+              example: '66b2f0d8cdbd8f1a9d2f1c11',
+            },
+          },
+        },
+        BoxStateUpdate: {
+          type: 'object',
+          required: ['state'],
+          properties: {
+            state: {
+              type: 'string',
+              enum: ['AVAILABLE', 'RENTED', 'REPAIR'],
+              description: 'Nouvel etat de la box',
+              example: 'REPAIR',
+            },
+          },
+        },
+        BoxAssignate: {
+          type: 'object',
+          required: ['boxId', 'isAssignate'],
+          properties: {
+            boxId: {
+              type: 'string',
+              description: 'ID de la box',
+              example: '66b2f0d8cdbd8f1a9d2f1c33',
+            },
+            userId: {
+              type: 'string',
+              description: 'ID utilisateur a assigner',
+              example: '66b2f0d8cdbd8f1a9d2f1c11',
+            },
+            isAssignate: {
+              type: 'boolean',
+              description: 'true pour assigner, false pour desassigner',
+              example: true,
+            },
+          },
+        },
         ProductTypeAttribute: {
           type: 'object',
           required: ['code', 'type'],
@@ -375,6 +512,25 @@ const options = {
           properties: {
             success: { type: 'boolean' },
             message: { type: 'string' },
+          },
+        },
+        ApiResponseBox: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+            data: { $ref: '#/components/schemas/Box' },
+          },
+        },
+        ApiResponseBoxListPaged: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            data: {
+              type: 'array',
+              items: { $ref: '#/components/schemas/Box' },
+            },
+            pagination: { $ref: '#/components/schemas/Pagination' },
           },
         },
         ApiResponseProductType: {

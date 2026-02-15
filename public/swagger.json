@@ -24,6 +24,168 @@
       }
     },
     "schemas": {
+      "Box": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "description": "ID unique de la box",
+            "example": "66b2f0d8cdbd8f1a9d2f1c33"
+          },
+          "label": {
+            "type": "string",
+            "description": "Libelle de la box",
+            "example": "Box A1"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "AVAILABLE",
+              "RENTED",
+              "REPAIR"
+            ],
+            "description": "Etat de la box",
+            "example": "AVAILABLE"
+          },
+          "rent": {
+            "type": "number",
+            "description": "Prix de location",
+            "example": 1500
+          },
+          "userId": {
+            "type": "string",
+            "description": "ID utilisateur assigne",
+            "nullable": true,
+            "example": "66b2f0d8cdbd8f1a9d2f1c11"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Date de creation"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Date de modification"
+          }
+        }
+      },
+      "BoxCreate": {
+        "type": "object",
+        "required": [
+          "_id",
+          "label",
+          "rent"
+        ],
+        "properties": {
+          "_id": {
+            "type": "string",
+            "description": "ID unique de la box",
+            "example": "66b2f0d8cdbd8f1a9d2f1c33"
+          },
+          "label": {
+            "type": "string",
+            "description": "Libelle de la box",
+            "example": "Box A1"
+          },
+          "rent": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Prix de location",
+            "example": 1500
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "AVAILABLE",
+              "RENTED",
+              "REPAIR"
+            ],
+            "description": "Etat de la box",
+            "example": "AVAILABLE"
+          },
+          "userId": {
+            "type": "string",
+            "description": "ID utilisateur assigne",
+            "nullable": true,
+            "example": "66b2f0d8cdbd8f1a9d2f1c11"
+          }
+        }
+      },
+      "BoxUpdate": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string",
+            "description": "Libelle de la box",
+            "example": "Box A1"
+          },
+          "rent": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Prix de location",
+            "example": 1500
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "AVAILABLE",
+              "RENTED",
+              "REPAIR"
+            ],
+            "description": "Etat de la box",
+            "example": "REPAIR"
+          },
+          "userId": {
+            "type": "string",
+            "description": "ID utilisateur assigne",
+            "nullable": true,
+            "example": "66b2f0d8cdbd8f1a9d2f1c11"
+          }
+        }
+      },
+      "BoxStateUpdate": {
+        "type": "object",
+        "required": [
+          "state"
+        ],
+        "properties": {
+          "state": {
+            "type": "string",
+            "enum": [
+              "AVAILABLE",
+              "RENTED",
+              "REPAIR"
+            ],
+            "description": "Nouvel etat de la box",
+            "example": "REPAIR"
+          }
+        }
+      },
+      "BoxAssignate": {
+        "type": "object",
+        "required": [
+          "boxId",
+          "isAssignate"
+        ],
+        "properties": {
+          "boxId": {
+            "type": "string",
+            "description": "ID de la box",
+            "example": "66b2f0d8cdbd8f1a9d2f1c33"
+          },
+          "userId": {
+            "type": "string",
+            "description": "ID utilisateur a assigner",
+            "example": "66b2f0d8cdbd8f1a9d2f1c11"
+          },
+          "isAssignate": {
+            "type": "boolean",
+            "description": "true pour assigner, false pour desassigner",
+            "example": true
+          }
+        }
+      },
       "ProductTypeAttribute": {
         "type": "object",
         "required": [
@@ -487,6 +649,37 @@
           }
         }
       },
+      "ApiResponseBox": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/Box"
+          }
+        }
+      },
+      "ApiResponseBoxListPaged": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Box"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination"
+          }
+        }
+      },
       "ApiResponseProductType": {
         "type": "object",
         "properties": {
@@ -577,6 +770,291 @@
     }
   },
   "paths": {
+    "/api/boxes": {
+      "post": {
+        "summary": "Creer une box",
+        "tags": [
+          "Boxes"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BoxCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Box cree avec succes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseBox"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      },
+      "get": {
+        "summary": "Recuperer toutes les boxes",
+        "tags": [
+          "Boxes"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            },
+            "description": "Numero de page"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            },
+            "description": "Nombre d'elements par page"
+          },
+          {
+            "in": "query",
+            "name": "state",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "AVAILABLE",
+                "RENTED",
+                "REPAIR"
+              ]
+            },
+            "description": "Filtrer par etat"
+          },
+          {
+            "in": "query",
+            "name": "search",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Recherche par libelle"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste des boxes avec pagination",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseBoxListPaged"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/api/boxes/{id}": {
+      "get": {
+        "summary": "Recuperer une box par ID",
+        "tags": [
+          "Boxes"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID unique de la box"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Box trouvee",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseBox"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      },
+      "put": {
+        "summary": "Mettre a jour une box",
+        "tags": [
+          "Boxes"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID unique de la box"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BoxUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Box mise a jour avec succes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseBox"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Supprimer une box",
+        "tags": [
+          "Boxes"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID unique de la box"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Box supprimee avec succes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseMessage"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/api/boxes/{id}/state": {
+      "patch": {
+        "summary": "Changer l'etat d'une box",
+        "tags": [
+          "Boxes"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID unique de la box"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BoxStateUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Etat mis a jour avec succes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseBox"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      }
+    },
+    "/api/boxes/assignate": {
+      "patch": {
+        "summary": "Assigner ou desassigner une box a un utilisateur",
+        "tags": [
+          "Boxes"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BoxAssignate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Assignation effectuee avec succes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      }
+    },
     "/api/product-types": {
       "post": {
         "summary": "Creer un product type",

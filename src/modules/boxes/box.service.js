@@ -7,7 +7,7 @@ class BoxService {
   async assignateOrDesassignateUserToBox(assignationInformation) {
     const box = await boxRepository.findById(assignationInformation.boxId);
     if (!box) {
-      throw new Error("la box n'est pas trouvée");
+      throw new Error("La box n'est pas trouvée");
     }
 
     let user = null;
@@ -16,7 +16,7 @@ class BoxService {
       // 🔒 ASSIGNATION
 
       if (box.userId) {
-        throw new Error("la box est déjà assignée");
+        throw new Error("La box est déjà assignée");
       }
       if (!BoxUtils.validateStateChange(box.state, 'RENTED')) {
         throw new Error('Impossible d’assigner une box dans cet état');
@@ -24,7 +24,7 @@ class BoxService {
 
       user = await userRepository.findById(assignationInformation.userId);
       if (!user) {
-        throw new Error("l'utilisateur n'est pas trouvé");
+        throw new Error("L'utilisateur n'est pas trouvé");
       }
 
       box.userId = user._id;
@@ -34,7 +34,7 @@ class BoxService {
       // 🔓 DÉSAFFECTATION
 
       if (!box.userId) {
-        throw new Error("la box n'est pas assignée");
+        throw new Error("La box n'est pas assignée");
       }
 
       if (!BoxUtils.validateStateChange(box.state, 'AVAILABLE')) {
