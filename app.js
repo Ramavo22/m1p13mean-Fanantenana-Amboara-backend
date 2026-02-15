@@ -37,10 +37,10 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs, {
 
 // Routes
 app.use('/api/users', userRoutes);
-app.use('/api/box',boxRoutes);
-app.use('/api/shop',shopRoutes);
-app.use('/api/product-type',productTypeRoutes);
-app.use('/api/product',productRoutes);
+app.use('/api/boxes',boxRoutes);
+app.use('/api/shops',shopRoutes);
+app.use('/api/product-types',productTypeRoutes);
+app.use('/api/products',productRoutes);
 app.use('/api/transactions', transactionRoutes);
 
 // Route de base

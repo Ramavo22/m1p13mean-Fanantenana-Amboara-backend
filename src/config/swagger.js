@@ -32,6 +32,102 @@ const options = {
         },
       },
       schemas: {
+        ProductTypeAttribute: {
+          type: 'object',
+          required: ['code', 'type'],
+          properties: {
+            code: {
+              type: 'string',
+              description: 'Code unique de l attribut',
+              example: 'COLOR',
+            },
+            type: {
+              type: 'string',
+              enum: ['ENUM', 'NUMBER', 'STRING', 'BOOLEAN', 'DATE'],
+              description: 'Type de l attribut',
+              example: 'ENUM',
+            },
+            values: {
+              type: 'array',
+              items: { type: 'string' },
+              description: 'Valeurs possibles pour le type ENUM',
+              example: ['RED', 'GREEN', 'BLUE'],
+            },
+            min: {
+              type: 'number',
+              description: 'Valeur minimale pour le type NUMBER',
+              example: 0,
+            },
+            max: {
+              type: 'number',
+              description: 'Valeur maximale pour le type NUMBER',
+              example: 100,
+            },
+          },
+        },
+        ProductType: {
+          type: 'object',
+          properties: {
+            _id: {
+              type: 'string',
+              description: 'ID unique du product type',
+              example: '66b2f0d8cdbd8f1a9d2f1c22',
+            },
+            label: {
+              type: 'string',
+              description: 'Libelle du product type',
+              example: 'Electromenager',
+            },
+            attributes: {
+              type: 'array',
+              items: { $ref: '#/components/schemas/ProductTypeAttribute' },
+            },
+            createdAt: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Date de creation',
+            },
+            updatedAt: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Date de modification',
+            },
+          },
+        },
+        ProductTypeCreate: {
+          type: 'object',
+          required: ['_id', 'label'],
+          properties: {
+            _id: {
+              type: 'string',
+              description: 'ID unique du product type',
+              example: '66b2f0d8cdbd8f1a9d2f1c22',
+            },
+            label: {
+              type: 'string',
+              description: 'Libelle du product type',
+              example: 'Electromenager',
+            },
+            attributes: {
+              type: 'array',
+              items: { $ref: '#/components/schemas/ProductTypeAttribute' },
+            },
+          },
+        },
+        ProductTypeUpdate: {
+          type: 'object',
+          properties: {
+            label: {
+              type: 'string',
+              description: 'Libelle du product type',
+              example: 'Electromenager',
+            },
+            attributes: {
+              type: 'array',
+              items: { $ref: '#/components/schemas/ProductTypeAttribute' },
+            },
+          },
+        },
         UserProfile: {
           type: 'object',
           required: ['fullName', 'tel'],
@@ -279,6 +375,24 @@ const options = {
           properties: {
             success: { type: 'boolean' },
             message: { type: 'string' },
+          },
+        },
+        ApiResponseProductType: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+            data: { $ref: '#/components/schemas/ProductType' },
+          },
+        },
+        ApiResponseProductTypeList: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            data: {
+              type: 'array',
+              items: { $ref: '#/components/schemas/ProductType' },
+            },
           },
         },
         Error: {
