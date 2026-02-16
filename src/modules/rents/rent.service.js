@@ -3,6 +3,21 @@ const boxRepository = require('../boxes/box.repository');
 const shopRepository = require('../shops/shop.repository');
 
 class RentService {
+
+    setNextDeadline(frequency = 'MONTHLY') {
+        const now = new Date();
+        switch (frequency) {
+            case 'WEEKLY':
+                return new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+            case 'MONTHLY':
+                return new Date(now.setMonth(now.getMonth() + 1));
+            case 'YEARLY':
+                return new Date(now.setFullYear(now.getFullYear() + 1));
+            default:
+                throw new Error('Fréquence de location invalide');
+        }
+    }
+
     async createRent(rentData) {
         const box = await boxRepository.findById(rentData.boxId);
         if (!box) {
@@ -13,6 +28,9 @@ class RentService {
         if (!shop) {
             throw new Error('Shop introuvable');
         }
+
+        // Définir la date d'échéance en fonction de la fréquence
+        rentData.nextDeadline = this.setNextDeadline(rentData.frequency);
 
         return await rentRepository.createData(rentData);
     }
@@ -26,9 +44,16 @@ class RentService {
         if (!rent) {
             throw new Error('Rent introuvable');
         }
+        return rent;
     }
 
     async updateRent(id, data) {
+        const allowableStatus= ['ACTIVE', 'EXPIRED', 'CANCELLED'];
+
+        if (data.status && !allowableStatus.includes(data.status)) {
+            throw new Error('Status de location invalide');
+        }
+
         const rent = await rentRepository.update(id, data);
         if (!rent) {
             throw new Error('Rent introuvable');

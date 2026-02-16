@@ -32,7 +32,7 @@ const rentSchema = new mongoose.Schema(
         },
         frequency: {
             type: String,
-            enum: ['WEEKLY', 'MONTHLY', 'TRIMESTER', 'SEMESTER', 'YEARLY'],
+            enum: ['WEEKLY', 'MONTHLY', 'YEARLY'],
             required: true,
             default: 'MONTHLY'
         }

@@ -14,11 +14,6 @@ const boxSchema = new mongoose.Schema(
         rent: {
             type: Number,
             require: true
-        },
-        shopId: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Shop',
-            required: false
         }
     },
     {

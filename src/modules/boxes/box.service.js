@@ -8,8 +8,8 @@ class BoxService {
       throw new Error('Le label est obligatoire');
     }
 
-    if (boxData.rent == null || boxData.rent <= 0) {
-      throw new Error('Le prix de location doit être supérieur à 0');
+    if (boxData.rent == null || boxData.rent < 0) {
+      throw new Error('Le prix de location doit être supérieur ou égal à 0');
     }
 
     if (boxData.state && !BoxUtils.validateState(boxData.state)) {
@@ -52,8 +52,8 @@ class BoxService {
       }
     }
 
-    if (updateData.rent != null && updateData.rent <= 0) {
-      throw new Error('Le prix de location doit être supérieur à 0');
+    if (updateData.rent != null && updateData.rent < 0) {
+      throw new Error('Le prix de location doit être supérieur ou égal à 0');
     }
 
     return await boxRepository.update(boxId, updateData);

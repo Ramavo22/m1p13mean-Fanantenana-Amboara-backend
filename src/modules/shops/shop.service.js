@@ -1,5 +1,6 @@
 const shopRepository = require('./shop.repository');
 const boxRepository = require('../boxes/box.repository');
+const rentService = require('../rents/rent.service');
 const BoxUtils = require('../boxes/box.utils');
 
 class ShopService {
@@ -66,14 +67,12 @@ class ShopService {
       throw new Error("La box n'est pas trouvee");
     }
 
-    if (!assignationInformation.shopId) {
-      throw new Error("Le shopId est obligatoire");
-    }
-
     const shop = await shopRepository.findById(assignationInformation.shopId);
     if (!shop) {
       throw new Error("Le shop n'est pas trouve");
     }
+
+    let rent = null;
 
     if (assignationInformation.isAssignate) {
       if (shop.boxId) {
@@ -86,7 +85,18 @@ class ShopService {
 
       shop.boxId = box._id;
       box.shopId = shop._id;
+      box.rent = assignationInformation.rent;
       box.state = 'RENTED';
+
+      let rent = {
+        boxId: box._id,
+        shopId: shop._id,
+        startDate: new Date(),
+        amount: assignationInformation.rent,
+        frequency: assignationInformation.frequency || 'MONTHLY'
+      }
+      rent = await rentService.createRent(rent);
+
     } else {
       if (!shop.boxId) {
         throw new Error("Le shop n'a pas de box assignee");
@@ -104,9 +114,8 @@ class ShopService {
     const shopUpdated = await shopRepository.update(shop._id, shop);
     const boxUpdated = await boxRepository.update(box._id, box);
     const isAssignate = assignationInformation.isAssignate;
-    return { boxUpdated, shopUpdated, isAssignate };
+    return { boxUpdated, shopUpdated, isAssignate, rent };
   }
-
 }
 
 module.exports = new ShopService();
