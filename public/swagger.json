@@ -63,6 +63,57 @@
           }
         }
       },
+      "ShopWithOwner": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "description": "ID unique du shop",
+            "example": "66b2f0d8cdbd8f1a9d2f1c44"
+          },
+          "name": {
+            "type": "string",
+            "description": "Nom du shop",
+            "example": "Boutique Centrale"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "INACTIVE"
+            ],
+            "description": "Statut du shop",
+            "example": "ACTIVE"
+          },
+          "ownerUserId": {
+            "type": "string",
+            "description": "ID du proprietaire",
+            "example": "66b2f0d8cdbd8f1a9d2f1c11"
+          },
+          "ownerUser": {
+            "type": "object",
+            "properties": {
+              "_id": {
+                "type": "string",
+                "description": "ID unique de l'utilisateur"
+              },
+              "profile": {
+                "$ref": "#/components/schemas/UserProfile"
+              }
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Date de creation"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Date de modification"
+          }
+        }
+      },
       "ShopCreate": {
         "type": "object",
         "required": [
@@ -767,6 +818,54 @@
           }
         }
       },
+      "ApiResponseShopListPaged": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Shop"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination"
+          }
+        }
+      },
+      "ApiResponseShopListWithOwner": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ShopWithOwner"
+            }
+          }
+        }
+      },
+      "ApiResponseShopListWithOwnerPaged": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ShopWithOwner"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination"
+          }
+        }
+      },
       "ApiResponseBox": {
         "type": "object",
         "properties": {
@@ -1400,13 +1499,35 @@
             "bearerAuth": []
           }
         ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "example": 1
+            },
+            "description": "Numero de page"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "example": 10
+            },
+            "description": "Nombre d'elements par page"
+          }
+        ],
         "responses": {
           "200": {
             "description": "Liste des shops",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ApiResponseShopList"
+                  "$ref": "#/components/schemas/ApiResponseShopListPaged"
                 }
               }
             }
@@ -1419,6 +1540,81 @@
           },
           "500": {
             "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/api/shops/search": {
+      "get": {
+        "summary": "Rechercher des shops par criteres",
+        "tags": [
+          "Shops"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ACTIVE",
+                "INACTIVE"
+              ]
+            },
+            "description": "Filtre par statut"
+          },
+          {
+            "in": "query",
+            "name": "ownerFullName",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filtre par nom complet du proprietaire (partiel, insensible a la casse)"
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "example": 1
+            },
+            "description": "Numero de page"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "example": 10
+            },
+            "description": "Nombre d'elements par page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste des shops avec le profil du proprietaire",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseShopListWithOwnerPaged"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
           }
         }
       }

@@ -14,8 +14,12 @@ class ShopService {
     return await shopRepository.create(data);
   }
 
-  async getAllShops() {
-    return await shopRepository.findAll();
+  async getAllShops(page = 1, limit = 10) {
+    return await shopRepository.findAll(page, limit);
+  }
+
+  async searchShopsWithOwnerProfile(filters, page = 1, limit = 10) {
+    return await shopRepository.searchWithOwnerProfile(filters, page, limit);
   }
 
   async getShopById(id) {

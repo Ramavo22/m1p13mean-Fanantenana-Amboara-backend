@@ -35,14 +35,41 @@ class ShopController {
   // GET /api/shops
   async getAll(req, res) {
     try {
-      const shops = await shopService.getAllShops();
+      const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+      const limit = Math.max(parseInt(req.query.limit, 10) || 10, 1);
+      const result = await shopService.getAllShops(page, limit);
 
       return res.status(200).json({
         success: true,
-        data: shops,
+        data: result.data,
+        pagination: result.pagination,
       });
     } catch (error) {
       return res.status(500).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+
+  // GET /api/shops/search
+  async search(req, res) {
+    try {
+      const { status, ownerFullName } = req.query;
+      const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+      const limit = Math.max(parseInt(req.query.limit, 10) || 10, 1);
+      const result = await shopService.searchShopsWithOwnerProfile({
+        status,
+        ownerFullName,
+      }, page, limit);
+
+      return res.status(200).json({
+        success: true,
+        data: result.data,
+        pagination: result.pagination,
+      });
+    } catch (error) {
+      return res.status(400).json({
         success: false,
         message: error.message,
       });

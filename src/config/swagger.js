@@ -68,6 +68,54 @@ const options = {
             },
           },
         },
+        ShopWithOwner: {
+          type: 'object',
+          properties: {
+            _id: {
+              type: 'string',
+              description: 'ID unique du shop',
+              example: '66b2f0d8cdbd8f1a9d2f1c44',
+            },
+            name: {
+              type: 'string',
+              description: 'Nom du shop',
+              example: 'Boutique Centrale',
+            },
+            status: {
+              type: 'string',
+              enum: ['ACTIVE', 'INACTIVE'],
+              description: 'Statut du shop',
+              example: 'ACTIVE',
+            },
+            ownerUserId: {
+              type: 'string',
+              description: 'ID du proprietaire',
+              example: '66b2f0d8cdbd8f1a9d2f1c11',
+            },
+            ownerUser: {
+              type: 'object',
+              properties: {
+                _id: {
+                  type: 'string',
+                  description: "ID unique de l'utilisateur",
+                },
+                profile: {
+                  $ref: '#/components/schemas/UserProfile',
+                },
+              },
+            },
+            createdAt: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Date de creation',
+            },
+            updatedAt: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Date de modification',
+            },
+          },
+        },
         ShopCreate: {
           type: 'object',
           required: ['name'],
@@ -609,6 +657,38 @@ const options = {
               type: 'array',
               items: { $ref: '#/components/schemas/Shop' },
             },
+          },
+        },
+        ApiResponseShopListPaged: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            data: {
+              type: 'array',
+              items: { $ref: '#/components/schemas/Shop' },
+            },
+            pagination: { $ref: '#/components/schemas/Pagination' },
+          },
+        },
+        ApiResponseShopListWithOwner: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            data: {
+              type: 'array',
+              items: { $ref: '#/components/schemas/ShopWithOwner' },
+            },
+          },
+        },
+        ApiResponseShopListWithOwnerPaged: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            data: {
+              type: 'array',
+              items: { $ref: '#/components/schemas/ShopWithOwner' },
+            },
+            pagination: { $ref: '#/components/schemas/Pagination' },
           },
         },
         ApiResponseBox: {

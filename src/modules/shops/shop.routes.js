@@ -43,13 +43,28 @@ router.post('/', authenticateToken, authorizeRoles('BOUTIQUE'), (req, res) => sh
  *     tags: [Shops]
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           example: 1
+ *         description: Numero de page
+ *       - in: query
+ *         name: limit
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           example: 10
+ *         description: Nombre d'elements par page
  *     responses:
  *       200:
  *         description: Liste des shops
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ApiResponseShopList'
+ *               $ref: '#/components/schemas/ApiResponseShopListPaged'
  *       401:
  *         $ref: '#/components/responses/Unauthorized'
  *       403:
@@ -58,6 +73,56 @@ router.post('/', authenticateToken, authorizeRoles('BOUTIQUE'), (req, res) => sh
  *         $ref: '#/components/responses/InternalServerError'
  */
 router.get('/', authenticateToken, authorizeRoles('ADMIN', 'ACHETEUR'), (req, res) => shopController.getAll(req, res));
+
+/**
+ * @swagger
+ * /api/shops/search:
+ *   get:
+ *     summary: Rechercher des shops par criteres
+ *     tags: [Shops]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: status
+ *         required: false
+ *         schema:
+ *           type: string
+ *           enum: [ACTIVE, INACTIVE]
+ *         description: Filtre par statut
+ *       - in: query
+ *         name: ownerFullName
+ *         required: false
+ *         schema:
+ *           type: string
+ *         description: Filtre par nom complet du proprietaire (partiel, insensible a la casse)
+ *       - in: query
+ *         name: page
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           example: 1
+ *         description: Numero de page
+ *       - in: query
+ *         name: limit
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           example: 10
+ *         description: Nombre d'elements par page
+ *     responses:
+ *       200:
+ *         description: Liste des shops avec le profil du proprietaire
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiResponseShopListWithOwnerPaged'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       400:
+ *         $ref: '#/components/responses/BadRequest'
+ */
+router.get('/search', authenticateToken, (req, res) => shopController.search(req, res));
 
 /**
  * @swagger
