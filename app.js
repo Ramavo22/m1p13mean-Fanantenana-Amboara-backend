@@ -10,9 +10,10 @@ const path = require('path');
 const userRoutes = require('./src/modules/users/user.routes');
 const boxRoutes = require('./src/modules/boxes/box.routes');
 const shopRoutes = require('./src/modules/shops/shop.routes');
-const productTypeRoutes = require('./src/modules/product-types/product-type.route');
+const productTypeRoutes = require('./src/modules/product-types/product-type.routes');
 const productRoutes = require('./src/modules/products/product.routes');
 const transactionRoutes = require('./src/modules/transactions/transaction.routes');
+const rentRoutes = require('./src/modules/rents/rent.routes');  
 
 // Créer l'application Express
 const app = express();
@@ -42,6 +43,7 @@ app.use('/api/shops',shopRoutes);
 app.use('/api/product-types',productTypeRoutes);
 app.use('/api/products',productRoutes);
 app.use('/api/transactions', transactionRoutes);
+app.use('/api/rents', rentRoutes);
 
 // Route de base
 app.get('/', (req, res) => {
