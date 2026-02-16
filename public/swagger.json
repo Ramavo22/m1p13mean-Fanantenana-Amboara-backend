@@ -102,6 +102,16 @@
               }
             }
           },
+          "boxId": {
+            "type": "string",
+            "description": "ID de la box assignee",
+            "nullable": true,
+            "example": "66b2f0d8cdbd8f1a9d2f1c33"
+          },
+          "assignedBox": {
+            "nullable": true,
+            "$ref": "#/components/schemas/Box"
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time",
@@ -193,11 +203,11 @@
             "description": "Prix de location",
             "example": 1500
           },
-          "userId": {
+          "shopId": {
             "type": "string",
-            "description": "ID utilisateur assigne",
+            "description": "ID du shop assigne",
             "nullable": true,
-            "example": "66b2f0d8cdbd8f1a9d2f1c11"
+            "example": "66b2f0d8cdbd8f1a9d2f1c44"
           },
           "createdAt": {
             "type": "string",
@@ -245,11 +255,11 @@
             "description": "Etat de la box",
             "example": "AVAILABLE"
           },
-          "userId": {
+          "shopId": {
             "type": "string",
-            "description": "ID utilisateur assigne",
+            "description": "ID du shop assigne",
             "nullable": true,
-            "example": "66b2f0d8cdbd8f1a9d2f1c11"
+            "example": "66b2f0d8cdbd8f1a9d2f1c44"
           }
         }
       },
@@ -277,11 +287,11 @@
             "description": "Etat de la box",
             "example": "REPAIR"
           },
-          "userId": {
+          "shopId": {
             "type": "string",
-            "description": "ID utilisateur assigne",
+            "description": "ID du shop assigne",
             "nullable": true,
-            "example": "66b2f0d8cdbd8f1a9d2f1c11"
+            "example": "66b2f0d8cdbd8f1a9d2f1c44"
           }
         }
       },
@@ -315,10 +325,10 @@
             "description": "ID de la box",
             "example": "66b2f0d8cdbd8f1a9d2f1c33"
           },
-          "userId": {
+          "shopId": {
             "type": "string",
-            "description": "ID utilisateur a assigner",
-            "example": "66b2f0d8cdbd8f1a9d2f1c11"
+            "description": "ID du shop a assigner",
+            "example": "66b2f0d8cdbd8f1a9d2f1c44"
           },
           "isAssignate": {
             "type": "boolean",
@@ -1261,44 +1271,6 @@
         }
       }
     },
-    "/api/boxes/assignate": {
-      "patch": {
-        "summary": "Assigner ou desassigner une box a un utilisateur",
-        "tags": [
-          "Boxes"
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/BoxAssignate"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Assignation effectuee avec succes",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        }
-      }
-    },
     "/api/product-types": {
       "post": {
         "summary": "Creer un product type",
@@ -1579,6 +1551,50 @@
           },
           "500": {
             "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/api/shops/assignate": {
+      "patch": {
+        "summary": "Assigner ou desassigner une box a un shop",
+        "tags": [
+          "Shops"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BoxAssignate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Assignation effectuee avec succes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseMessage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
           }
         }
       }

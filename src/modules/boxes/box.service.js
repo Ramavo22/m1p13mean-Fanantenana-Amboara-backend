@@ -1,55 +1,7 @@
 const boxRepository = require('./box.repository');
-const userRepository = require('../users/user.repository');
 const BoxUtils = require('./box.utils');
 
 class BoxService {
-
-  async assignateOrDesassignateUserToBox(assignationInformation) {
-    const box = await boxRepository.findById(assignationInformation.boxId);
-    if (!box) {
-      throw new Error("La box n'est pas trouvée");
-    }
-
-    let user = null;
-
-    if (assignationInformation.isAssignate) {
-      // 🔒 ASSIGNATION
-
-      if (box.userId) {
-        throw new Error("La box est déjà assignée");
-      }
-      if (!BoxUtils.validateStateChange(box.state, 'RENTED')) {
-        throw new Error('Impossible d’assigner une box dans cet état');
-      }
-
-      user = await userRepository.findById(assignationInformation.userId);
-      if (!user) {
-        throw new Error("L'utilisateur n'est pas trouvé");
-      }
-
-      box.userId = user._id;
-      box.state = 'RENTED';
-
-    } else {
-      // 🔓 DÉSAFFECTATION
-
-      if (!box.userId) {
-        throw new Error("La box n'est pas assignée");
-      }
-
-      if (!BoxUtils.validateStateChange(box.state, 'AVAILABLE')) {
-        throw new Error('Impossible de désassigner une box dans cet état');
-      }
-
-      box.userId = null;
-      box.state = 'AVAILABLE';
-    }
-
-    const boxUpdated = await boxRepository.update(box._id, box);
-    const isAssignate = assignationInformation.isAssignate
-    return { boxUpdated, isAssignate };
-  }
-
 
   async createBox(boxData) {
     if (!boxData.label) {
@@ -136,6 +88,7 @@ class BoxService {
 
     return await boxRepository.update(boxId, { state: newState });
   }
+
 }
 
 module.exports = new BoxService();

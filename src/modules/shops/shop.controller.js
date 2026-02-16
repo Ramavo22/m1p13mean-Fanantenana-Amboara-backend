@@ -2,6 +2,24 @@ const shopService = require('./shop.service');
 
 class ShopController {
 
+  // PATCH /api/shops/assignate
+  async assignateBoxToShop(req, res) {
+    try {
+      const assignationData = req.body;
+      const { boxUpdated, isAssignate } = await shopService.assignateOrDesassignateBoxToShop(assignationData);
+
+      return res.status(200).json({
+        success: true,
+        message: `La box "${boxUpdated.label}" a été ${isAssignate ? 'assignée' : 'désassignée'} avec succès`,
+      });
+    } catch (error) {
+      return res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+
   // POST /api/shops
   async create(req, res) {
     try {

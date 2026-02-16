@@ -1,4 +1,6 @@
 const shopRepository = require('./shop.repository');
+const boxRepository = require('../boxes/box.repository');
+const BoxUtils = require('../boxes/box.utils');
 
 class ShopService {
 
@@ -58,6 +60,53 @@ class ShopService {
 
     return shop;
   }
+
+  async assignateOrDesassignateBoxToShop(assignationInformation) {
+    const box = await boxRepository.findById(assignationInformation.boxId);
+    if (!box) {
+      throw new Error("La box n'est pas trouvée");
+    }
+
+    let shop = null;
+
+    if (assignationInformation.isAssignate) {
+      if (!assignationInformation.shopId) {
+        throw new Error("Le shopId est obligatoire pour l'assignation");
+      }
+
+      if (box.shopId) {
+        throw new Error("La box est déjà assignée");
+      }
+
+      if (!BoxUtils.validateStateChange(box.state, 'RENTED')) {
+        throw new Error('Impossible d’assigner une box dans cet état');
+      }
+
+      shop = await shopRepository.findById(assignationInformation.shopId);
+      if (!shop) {
+        throw new Error("Le shop n'est pas trouvé");
+      }
+
+      box.shopId = shop._id;
+      box.state = 'RENTED';
+    } else {
+      if (!box.shopId) {
+        throw new Error("La box n'est pas assignée");
+      }
+
+      if (!BoxUtils.validateStateChange(box.state, 'AVAILABLE')) {
+        throw new Error('Impossible de désassigner une box dans cet état');
+      }
+
+      box.shopId = null;
+      box.state = 'AVAILABLE';
+    }
+
+    const boxUpdated = await boxRepository.update(box._id, box);
+    const isAssignate = assignationInformation.isAssignate;
+    return { boxUpdated, isAssignate };
+  }
+
 }
 
 module.exports = new ShopService();

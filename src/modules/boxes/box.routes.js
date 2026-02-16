@@ -180,31 +180,4 @@ router.delete('/:id', (req, res) => boxController.delete(req, res));
  */
 router.patch('/:id/state', (req, res) => boxController.changeState(req, res));
 
-/**
- * @swagger
- * /api/boxes/assignate:
- *   patch:
- *     summary: Assigner ou desassigner une box a un utilisateur
- *     tags: [Boxes]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/BoxAssignate'
- *     responses:
- *       200:
- *         description: Assignation effectuee avec succes
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *       400:
- *         $ref: '#/components/responses/BadRequest'
- */
-router.patch('/assignate',(req,res) => boxController.assignateBoxToUser(req,res));
-
 module.exports = router;

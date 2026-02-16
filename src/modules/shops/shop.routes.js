@@ -76,6 +76,36 @@ router.get('/', authenticateToken, authorizeRoles('ADMIN', 'ACHETEUR'), (req, re
 
 /**
  * @swagger
+ * /api/shops/assignate:
+ *   patch:
+ *     summary: Assigner ou desassigner une box a un shop
+ *     tags: [Shops]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/BoxAssignate'
+ *     responses:
+ *       200:
+ *         description: Assignation effectuee avec succes
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ApiResponseMessage'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
+ *       400:
+ *         $ref: '#/components/responses/BadRequest'
+ */
+router.patch('/assignate', authenticateToken, authorizeRoles('ADMIN'), (req, res) => shopController.assignateBoxToShop(req, res));
+
+/**
+ * @swagger
  * /api/shops/search:
  *   get:
  *     summary: Rechercher des shops par criteres
@@ -221,7 +251,7 @@ router.get('/owner/:ownerUserId', authenticateToken, (req, res) => shopControlle
  *       404:
  *         $ref: '#/components/responses/NotFound'
  */
-router.put('/:id', authenticateToken, authorizeRoles('BOUTIQUE'), (req, res) => shopController.update(req, res));
+router.put('/:id', authenticateToken, authorizeRoles('ADMIN'), (req, res) => shopController.update(req, res));
 
 /**
  * @swagger

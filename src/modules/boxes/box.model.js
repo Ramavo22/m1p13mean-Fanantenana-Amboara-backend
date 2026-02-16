@@ -15,11 +15,10 @@ const boxSchema = new mongoose.Schema(
             type: Number,
             require: true
         },
-        userId: {
+        shopId: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: 'User',
+            ref: 'Shop',
             required: false
-
         }
     },
     {

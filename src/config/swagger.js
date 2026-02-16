@@ -104,6 +104,16 @@ const options = {
                 },
               },
             },
+            boxId: {
+              type: 'string',
+              description: 'ID de la box assignee',
+              nullable: true,
+              example: '66b2f0d8cdbd8f1a9d2f1c33',
+            },
+            assignedBox: {
+              nullable: true,
+              $ref: '#/components/schemas/Box',
+            },
             createdAt: {
               type: 'string',
               format: 'date-time',
@@ -183,11 +193,11 @@ const options = {
               description: 'Prix de location',
               example: 1500,
             },
-            userId: {
+            shopId: {
               type: 'string',
-              description: 'ID utilisateur assigne',
+              description: 'ID du shop assigne',
               nullable: true,
-              example: '66b2f0d8cdbd8f1a9d2f1c11',
+              example: '66b2f0d8cdbd8f1a9d2f1c44',
             },
             createdAt: {
               type: 'string',
@@ -227,11 +237,11 @@ const options = {
               description: 'Etat de la box',
               example: 'AVAILABLE',
             },
-            userId: {
+            shopId: {
               type: 'string',
-              description: 'ID utilisateur assigne',
+              description: 'ID du shop assigne',
               nullable: true,
-              example: '66b2f0d8cdbd8f1a9d2f1c11',
+              example: '66b2f0d8cdbd8f1a9d2f1c44',
             },
           },
         },
@@ -255,11 +265,11 @@ const options = {
               description: 'Etat de la box',
               example: 'REPAIR',
             },
-            userId: {
+            shopId: {
               type: 'string',
-              description: 'ID utilisateur assigne',
+              description: 'ID du shop assigne',
               nullable: true,
-              example: '66b2f0d8cdbd8f1a9d2f1c11',
+              example: '66b2f0d8cdbd8f1a9d2f1c44',
             },
           },
         },
@@ -284,10 +294,10 @@ const options = {
               description: 'ID de la box',
               example: '66b2f0d8cdbd8f1a9d2f1c33',
             },
-            userId: {
+            shopId: {
               type: 'string',
-              description: 'ID utilisateur a assigner',
-              example: '66b2f0d8cdbd8f1a9d2f1c11',
+              description: 'ID du shop a assigner',
+              example: '66b2f0d8cdbd8f1a9d2f1c44',
             },
             isAssignate: {
               type: 'boolean',

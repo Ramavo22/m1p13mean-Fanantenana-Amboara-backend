@@ -51,6 +51,34 @@ class ShopRepository {
                 },
             },
             { $unwind: '$ownerUser' },
+            {
+                $lookup: {
+                    from: 'boxes',
+                    let: { shopId: '$_id' },
+                    pipeline: [
+                        { $match: { $expr: { $eq: ['$shopId', '$$shopId'] } } },
+                        { $sort: { createdAt: -1 } },
+                        { $limit: 1 },
+                        {
+                            $project: {
+                                _id: 1,
+                                label: 1,
+                                state: 1,
+                                rent: 1,
+                                shopId: 1,
+                                createdAt: 1,
+                                updatedAt: 1,
+                            },
+                        },
+                    ],
+                    as: 'assignedBox',
+                },
+            },
+            {
+                $addFields: {
+                    assignedBox: { $arrayElemAt: ['$assignedBox', 0] },
+                },
+            },
         ];
 
         if (ownerFullName) {
@@ -69,6 +97,8 @@ class ShopRepository {
                     name: 1,
                     status: 1,
                     ownerUserId: 1,
+                    boxId: '$assignedBox._id',
+                    assignedBox: 1,
                     createdAt: 1,
                     updatedAt: 1,
                     ownerUser: {
