@@ -32,6 +32,85 @@ const options = {
         },
       },
       schemas: {
+        Shop: {
+          type: 'object',
+          properties: {
+            _id: {
+              type: 'string',
+              description: 'ID unique du shop',
+              example: '66b2f0d8cdbd8f1a9d2f1c44',
+            },
+            name: {
+              type: 'string',
+              description: 'Nom du shop',
+              example: 'Boutique Centrale',
+            },
+            status: {
+              type: 'string',
+              enum: ['ACTIVE', 'INACTIVE'],
+              description: 'Statut du shop',
+              example: 'ACTIVE',
+            },
+            ownerUserId: {
+              type: 'string',
+              description: 'ID du proprietaire',
+              example: '66b2f0d8cdbd8f1a9d2f1c11',
+            },
+            createdAt: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Date de creation',
+            },
+            updatedAt: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Date de modification',
+            },
+          },
+        },
+        ShopCreate: {
+          type: 'object',
+          required: ['name'],
+          properties: {
+            name: {
+              type: 'string',
+              description: 'Nom du shop',
+              example: 'Boutique Centrale',
+            },
+            ownerUserId: {
+              type: 'string',
+              description: 'ID du proprietaire',
+              example: '66b2f0d8cdbd8f1a9d2f1c11',
+            },
+            status: {
+              type: 'string',
+              enum: ['ACTIVE', 'INACTIVE'],
+              description: 'Statut du shop',
+              example: 'ACTIVE',
+            },
+          },
+        },
+        ShopUpdate: {
+          type: 'object',
+          properties: {
+            name: {
+              type: 'string',
+              description: 'Nom du shop',
+              example: 'Boutique Centrale',
+            },
+            ownerUserId: {
+              type: 'string',
+              description: 'ID du proprietaire',
+              example: '66b2f0d8cdbd8f1a9d2f1c11',
+            },
+            status: {
+              type: 'string',
+              enum: ['ACTIVE', 'INACTIVE'],
+              description: 'Statut du shop',
+              example: 'INACTIVE',
+            },
+          },
+        },
         Box: {
           type: 'object',
           properties: {
@@ -514,6 +593,24 @@ const options = {
             message: { type: 'string' },
           },
         },
+        ApiResponseShop: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+            data: { $ref: '#/components/schemas/Shop' },
+          },
+        },
+        ApiResponseShopList: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            data: {
+              type: 'array',
+              items: { $ref: '#/components/schemas/Shop' },
+            },
+          },
+        },
         ApiResponseBox: {
           type: 'object',
           properties: {
@@ -572,6 +669,16 @@ const options = {
       responses: {
         BadRequest: {
           description: 'Requete invalide',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/Error',
+              },
+            },
+          },
+        },
+        Unauthorized: {
+          description: 'Non authentifie',
           content: {
             'application/json': {
               schema: {

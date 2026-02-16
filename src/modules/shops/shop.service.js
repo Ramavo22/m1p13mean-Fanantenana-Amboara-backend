@@ -28,6 +28,13 @@ class ShopService {
     return shop;
   }
 
+  async getShopByOwnerUserId(ownerUserId) {
+    const shop = await shopRepository.findByOwnerUserId(ownerUserId);
+
+    // Retourne le premier shop trouvé ou null si aucun
+    return shop[0] || null;
+  }
+
   async updateShop(id, data) {
     const shop = await shopRepository.update(id, data);
 

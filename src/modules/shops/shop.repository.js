@@ -14,6 +14,10 @@ class ShopRepository {
         return Shop.findById(id);
     }
 
+    async findByOwnerUserId(ownerUserId){
+        return Shop.find({ ownerUserId });
+    }
+
     async update(id, data){
         return Shop.findByIdAndUpdate(id, data, {new: true});
     }

@@ -5,7 +5,19 @@ class ShopController {
   // POST /api/shops
   async create(req, res) {
     try {
-      const shop = await shopService.createShop(req.body);
+      if (!req.user || !req.user.sub) {
+        return res.status(401).json({
+          success: false,
+          message: 'Utilisateur non authentifie',
+        });
+      }
+
+      const shopPayload = {
+        ...req.body,
+        ownerUserId: req.user.sub,
+      };
+
+      const shop = await shopService.createShop(shopPayload);
 
       return res.status(201).json({
         success: true,
@@ -43,6 +55,23 @@ class ShopController {
       const { id } = req.params;
       const shop = await shopService.getShopById(id);
 
+      return res.status(200).json({
+        success: true,
+        data: shop,
+      });
+    } catch (error) {
+      return res.status(404).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+
+  // GET /api/shops/owner/:ownerUserId
+  async getByOwnerUserId(req, res) {
+    try {
+      const { ownerUserId } = req.params;
+      const shop = await shopService.getShopByOwnerUserId(ownerUserId);
       return res.status(200).json({
         success: true,
         data: shop,
