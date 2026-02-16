@@ -158,7 +158,7 @@ router.get('/search', authenticateToken, (req, res) => shopController.search(req
  * @swagger
  * /api/shops/{id}:
  *   get:
- *     summary: Recuperer un shop par ID
+ *     summary: Recuperer un shop par ID avec details de box assignee
  *     tags: [Shops]
  *     security:
  *       - bearerAuth: []
@@ -171,11 +171,16 @@ router.get('/search', authenticateToken, (req, res) => shopController.search(req
  *         description: ID unique du shop
  *     responses:
  *       200:
- *         description: Shop trouve
+ *         description: Shop trouve avec boxId et assignedBox separes
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ApiResponseShop'
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   $ref: '#/components/schemas/Shop'
  *       401:
  *         $ref: '#/components/responses/Unauthorized'
  *       403:

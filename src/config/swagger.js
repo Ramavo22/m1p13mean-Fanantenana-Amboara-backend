@@ -56,6 +56,17 @@ const options = {
               description: 'ID du proprietaire',
               example: '66b2f0d8cdbd8f1a9d2f1c11',
             },
+            boxId: {
+              type: 'string',
+              description: 'ID de la box assignee',
+              nullable: true,
+              example: '66b2f0d8cdbd8f1a9d2f1c33',
+            },
+            assignedBox: {
+              nullable: true,
+              $ref: '#/components/schemas/Box',
+              description: 'Details de la box assignee au shop',
+            },
             createdAt: {
               type: 'string',
               format: 'date-time',
@@ -290,6 +301,24 @@ const options = {
           type: 'object',
           required: ['boxId', 'isAssignate'],
           properties: {
+            rent: {
+              type: 'number',
+              minimum: 0,
+              description: 'Montant du loyer (obligatoire pour une assignation, ignore pour une desassignation)',
+              example: 1500,
+            },
+            frequency: {
+              type: 'string',
+              enum: ['DAILY', 'WEEKLY', 'MONTHLY'],
+              description: 'Frequence de paiement du loyer (obligatoire pour une assignation, ignore pour une desassignation)',
+              example: 'MONTHLY',
+            },
+            startDate: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Date de debut de location (obligatoire pour une assignation, ignore pour une desassignation)',
+              example: '2024-01-01T00:00:00.000Z',
+            },
             boxId: {
               type: 'string',
               description: 'ID de la box',
