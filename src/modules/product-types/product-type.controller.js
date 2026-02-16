@@ -23,11 +23,14 @@ class ProductTypeController {
   // GET /api/product-types
   async getAll(req, res) {
     try {
-      const productTypes = await productTypeService.getAllProductTypes();
+      const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+      const limit = Math.max(parseInt(req.query.limit, 10) || 10, 1);
+      const result = await productTypeService.getAllProductTypes(page, limit);
 
       return res.status(200).json({
         success: true,
-        data: productTypes,
+        data: result.data,
+        pagination: result.pagination,
       });
     } catch (error) {
       return res.status(500).json({

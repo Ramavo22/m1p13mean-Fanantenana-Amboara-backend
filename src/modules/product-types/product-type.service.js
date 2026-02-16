@@ -36,8 +36,8 @@ class ProductTypeService {
     return await productTypeRepository.create(data);
   }
 
-  async getAllProductTypes() {
-    return await productTypeRepository.findAll();
+  async getAllProductTypes(page = 1, limit = 10) {
+    return await productTypeRepository.findAll(page, limit);
   }
 
   async getProductTypeById(id) {

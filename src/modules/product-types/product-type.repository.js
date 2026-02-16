@@ -7,8 +7,22 @@ class ProductTypeRepository {
     return await productType.save();
   }
 
-  async findAll() {
-    return await ProductType.find();
+  async findAll(page = 1, limit = 10) {
+    const skip = (page - 1) * limit;
+    const [productTypes, total] = await Promise.all([
+      ProductType.find().skip(skip).limit(limit),
+      ProductType.countDocuments(),
+    ]);
+
+    return {
+      data: productTypes,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit),
+      },
+    };
   }
 
   async findById(id) {

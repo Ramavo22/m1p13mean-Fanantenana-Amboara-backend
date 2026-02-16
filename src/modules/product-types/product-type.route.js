@@ -32,13 +32,28 @@ router.post('/', (req, res) => productTypeController.create(req, res));
  *   get:
  *     summary: Recuperer tous les product types
  *     tags: [Product Types]
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           example: 1
+ *         description: Numero de page
+ *       - in: query
+ *         name: limit
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           example: 10
+ *         description: Nombre d'elements par page
  *     responses:
  *       200:
  *         description: Liste des product types
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ApiResponseProductTypeList'
+ *               $ref: '#/components/schemas/ApiResponseProductTypeListPaged'
  *       500:
  *         $ref: '#/components/responses/InternalServerError'
  */

@@ -728,6 +728,17 @@ const options = {
             },
           },
         },
+        ApiResponseProductTypeListPaged: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            data: {
+              type: 'array',
+              items: { $ref: '#/components/schemas/ProductType' },
+            },
+            pagination: { $ref: '#/components/schemas/Pagination' },
+          },
+        },
         Error: {
           type: 'object',
           properties: {
