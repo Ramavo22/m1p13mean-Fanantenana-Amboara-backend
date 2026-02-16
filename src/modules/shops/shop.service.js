@@ -35,10 +35,9 @@ class ShopService {
   }
 
   async getShopByOwnerUserId(ownerUserId) {
-    const shop = await shopRepository.findByOwnerUserId(ownerUserId);
-
-    // Retourne le premier shop trouvé ou null si aucun
-    return shop[0] || null;
+    const shops = await shopRepository.findByOwnerUserId(ownerUserId);
+    // Retourne le premier shop trouvé avec box details ou null si aucun
+    return shops[0] || null;
   }
 
   async updateShop(id, data) {
@@ -64,47 +63,48 @@ class ShopService {
   async assignateOrDesassignateBoxToShop(assignationInformation) {
     const box = await boxRepository.findById(assignationInformation.boxId);
     if (!box) {
-      throw new Error("La box n'est pas trouvée");
+      throw new Error("La box n'est pas trouvee");
     }
 
-    let shop = null;
+    if (!assignationInformation.shopId) {
+      throw new Error("Le shopId est obligatoire");
+    }
+
+    const shop = await shopRepository.findById(assignationInformation.shopId);
+    if (!shop) {
+      throw new Error("Le shop n'est pas trouve");
+    }
 
     if (assignationInformation.isAssignate) {
-      if (!assignationInformation.shopId) {
-        throw new Error("Le shopId est obligatoire pour l'assignation");
-      }
-
-      if (box.shopId) {
-        throw new Error("La box est déjà assignée");
+      if (shop.boxId) {
+        throw new Error("Le shop a deja une box assignee");
       }
 
       if (!BoxUtils.validateStateChange(box.state, 'RENTED')) {
-        throw new Error('Impossible d’assigner une box dans cet état');
+        throw new Error('Impossible d\'assigner une box dans cet etat');
       }
 
-      shop = await shopRepository.findById(assignationInformation.shopId);
-      if (!shop) {
-        throw new Error("Le shop n'est pas trouvé");
-      }
-
+      shop.boxId = box._id;
       box.shopId = shop._id;
       box.state = 'RENTED';
     } else {
-      if (!box.shopId) {
-        throw new Error("La box n'est pas assignée");
+      if (!shop.boxId) {
+        throw new Error("Le shop n'a pas de box assignee");
       }
 
       if (!BoxUtils.validateStateChange(box.state, 'AVAILABLE')) {
-        throw new Error('Impossible de désassigner une box dans cet état');
+        throw new Error('Impossible de desassigner une box dans cet etat');
       }
 
+      shop.boxId = null;
       box.shopId = null;
       box.state = 'AVAILABLE';
     }
 
+    const shopUpdated = await shopRepository.update(shop._id, shop);
     const boxUpdated = await boxRepository.update(box._id, box);
     const isAssignate = assignationInformation.isAssignate;
-    return { boxUpdated, isAssignate };
+    return { boxUpdated, shopUpdated, isAssignate };
   }
 
 }

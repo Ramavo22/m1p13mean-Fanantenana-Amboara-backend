@@ -110,7 +110,8 @@
           },
           "assignedBox": {
             "nullable": true,
-            "$ref": "#/components/schemas/Box"
+            "$ref": "#/components/schemas/Box",
+            "description": "Details de la box assignee au shop"
           },
           "createdAt": {
             "type": "string",
@@ -873,6 +874,17 @@
           },
           "pagination": {
             "$ref": "#/components/schemas/Pagination"
+          }
+        }
+      },
+      "ApiResponseShopWithOwner": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/ShopWithOwner"
           }
         }
       },
@@ -1839,11 +1851,11 @@
         ],
         "responses": {
           "200": {
-            "description": "Shop trouve",
+            "description": "Shop trouve avec box assignee",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ApiResponseShop"
+                  "$ref": "#/components/schemas/ApiResponseShopWithOwner"
                 }
               }
             }

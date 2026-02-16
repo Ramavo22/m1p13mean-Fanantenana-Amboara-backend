@@ -31,7 +31,38 @@ class ShopRepository {
     }
 
     async findByOwnerUserId(ownerUserId){
-        return Shop.find({ ownerUserId });
+        const pipeline = [
+            { $match: { ownerUserId: new (require('mongoose')).Types.ObjectId(ownerUserId) } },
+            {
+                $lookup: {
+                    from: 'boxes',
+                    localField: 'boxId',
+                    foreignField: '_id',
+                    as: 'assignedBox',
+                },
+            },
+            {
+                $addFields: {
+                    assignedBox: { $arrayElemAt: ['$assignedBox', 0] },
+                    boxId: '$boxId',
+                },
+            },
+            {
+                $project: {
+                    _id: 1,
+                    name: 1,
+                    status: 1,
+                    ownerUserId: 1,
+                    boxId: { $toString: '$boxId' },
+                    assignedBox: '$assignedBox',
+                    createdAt: 1,
+                    updatedAt: 1,
+                },
+            },
+        ];
+
+        const result = await Shop.aggregate(pipeline);
+        return result;
     }
 
     async searchWithOwnerProfile({ status, ownerFullName }, page = 1, limit = 10) {
@@ -54,23 +85,8 @@ class ShopRepository {
             {
                 $lookup: {
                     from: 'boxes',
-                    let: { shopId: '$_id' },
-                    pipeline: [
-                        { $match: { $expr: { $eq: ['$shopId', '$$shopId'] } } },
-                        { $sort: { createdAt: -1 } },
-                        { $limit: 1 },
-                        {
-                            $project: {
-                                _id: 1,
-                                label: 1,
-                                state: 1,
-                                rent: 1,
-                                shopId: 1,
-                                createdAt: 1,
-                                updatedAt: 1,
-                            },
-                        },
-                    ],
+                    localField: 'boxId',
+                    foreignField: '_id',
                     as: 'assignedBox',
                 },
             },

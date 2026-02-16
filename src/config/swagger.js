@@ -113,6 +113,7 @@ const options = {
             assignedBox: {
               nullable: true,
               $ref: '#/components/schemas/Box',
+              description: 'Details de la box assignee au shop',
             },
             createdAt: {
               type: 'string',
@@ -699,6 +700,13 @@ const options = {
               items: { $ref: '#/components/schemas/ShopWithOwner' },
             },
             pagination: { $ref: '#/components/schemas/Pagination' },
+          },
+        },
+        ApiResponseShopWithOwner: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            data: { $ref: '#/components/schemas/ShopWithOwner' },
           },
         },
         ApiResponseBox: {

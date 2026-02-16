@@ -202,11 +202,11 @@ router.get('/:id', authenticateToken, authorizeRoles('ADMIN', 'ACHETEUR'), (req,
  *         description: ID du proprietaire
  *     responses:
  *       200:
- *         description: Shop trouve
+ *         description: Shop trouve avec box assignee
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ApiResponseShop'
+ *               $ref: '#/components/schemas/ApiResponseShopWithOwner'
  *       401:
  *         $ref: '#/components/responses/Unauthorized'
  *       403:
