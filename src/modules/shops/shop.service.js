@@ -84,7 +84,6 @@ class ShopService {
       }
 
       shop.boxId = box._id;
-      box.shopId = shop._id;
       box.rent = assignationInformation.rent;
       box.state = 'RENTED';
 
@@ -107,7 +106,6 @@ class ShopService {
       }
 
       shop.boxId = null;
-      box.shopId = null;
       box.state = 'AVAILABLE';
     }
 

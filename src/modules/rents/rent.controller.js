@@ -91,6 +91,23 @@ class RentController {
              });
         }
     }
+
+    // PATCH /api/rents/:id/pay
+    async payRent(req, res) {
+        try {
+            const result = await rentService.payRent(req.params.id, req.body.userId);
+            res.json({
+                success: true,
+                data: result,
+                message: 'Location payée avec succès'
+            });
+        } catch (error) {
+            res.status(400).json({ 
+                success: false,
+                message: error.message,
+             });
+        }
+    }
 }
 
 module.exports = new RentController();

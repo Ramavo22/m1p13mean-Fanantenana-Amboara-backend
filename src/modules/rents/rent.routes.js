@@ -8,5 +8,6 @@ router.get('/', authenticateToken, authorizeRoles('ADMIN','BOUTIQUE'), (req, res
 router.get('/:id', authenticateToken, authorizeRoles('ADMIN','BOUTIQUE'), (req, res) => rentController.getRentById(req, res));
 router.delete('/:id', authenticateToken, authorizeRoles('ADMIN'), (req, res) => rentController.deleteRent(req, res));
 router.put('/:id', authenticateToken, authorizeRoles('ADMIN'), (req, res) => rentController.updateRent(req, res));
+router.patch('/:id/pay', authenticateToken, authorizeRoles('BOUTIQUE'), (req, res) => rentController.payRent(req, res));
 
 module.exports = router;

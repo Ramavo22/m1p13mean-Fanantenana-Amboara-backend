@@ -1,6 +1,7 @@
 const rentRepository = require('./rent.repository');
 const boxRepository = require('../boxes/box.repository');
 const shopRepository = require('../shops/shop.repository');
+const transactionRepository = require('../transactions/transaction.repository');
 
 class RentService {
 
@@ -67,6 +68,33 @@ class RentService {
             throw new Error('Rent introuvable');
         }
         return rent;
+    }
+
+    async payRent(rentId, userId) {
+        const rent = await rentRepository.findById(rentId);
+        if (!rent) {
+            throw new Error('Rent introuvable');
+        }
+
+        if (rent.status !== 'ACTIVE') {
+            throw new Error('Seules les locations actives peuvent être payées');
+        }
+
+        // Mettre à jour la date d'échéance pour la prochaine période
+        rent.nextDeadline = this.setNextDeadline(rent.frequency);
+
+        const transactionData = {
+            type: 'LOYER',
+            total: rent.amount,
+            rentId: rent._id,
+            date: new Date(),
+            userId,
+            periode: new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }),
+        }
+        await transactionRepository.createData(transactionData);
+        await rent.save();
+
+        return { rent, transaction: transactionData };
     }
 }
 

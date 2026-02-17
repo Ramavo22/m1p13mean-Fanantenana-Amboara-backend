@@ -27,7 +27,7 @@ class ShopRepository {
     }
 
     async findById(id){
-        return Shop.findById(id);
+        return Shop.findById(id).populate('ownerUserId', 'profile').populate('boxId');
     }
 
     async findByOwnerUserId(ownerUserId){
