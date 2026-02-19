@@ -20,6 +20,7 @@ class TransactionRepository {
         if (filters.startDate || filters.endDate) filter.date = {};
         if (filters.startDate) filter.date.$gte = new Date(filters.startDate);
         if (filters.endDate) filter.date.$lte = new Date(filters.endDate);
+        if (filters.rentId) filter.rentId = filters.rentId;
         const transactions = await Transaction.find(filter)
             .skip(skip)
             .limit(limit)
@@ -44,6 +45,7 @@ class TransactionRepository {
         if (filters.startDate || filters.endDate) filter.date = {};
         if (filters.startDate) filter.date.$gte = new Date(filters.startDate);
         if (filters.endDate) filter.date.$lte = new Date(filters.endDate);
+        if (filters.rentId) filter.rentId = filters.rentId;
         const transactions = await Transaction.find(filter)
             .skip(skip)
             .limit(limit)

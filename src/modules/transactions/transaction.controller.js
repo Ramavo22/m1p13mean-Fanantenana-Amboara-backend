@@ -26,7 +26,8 @@ class TransactionController {
                 userId: req.params.userId,
                 type: req.query.type,
                 startDate: req.query.startDate,
-                endDate: req.query.endDate
+                endDate: req.query.endDate,
+                rentId: req.query.rentId,
             };
             const page = parseInt(req.query.page, 10) || 1;
             const limit = parseInt(req.query.limit, 10) || 10;
@@ -52,6 +53,7 @@ class TransactionController {
                 type: req.query.type,
                 startDate: req.query.startDate,
                 endDate: req.query.endDate,
+                rentId: req.query.rentId,
             };
             const page = parseInt(req.query.page, 10) || 1;
             const limit = parseInt(req.query.limit, 10) || 10;

@@ -5,8 +5,8 @@ const transactionRepository = require('../transactions/transaction.repository');
 
 class RentService {
 
-    setNextDeadline(frequency = 'MONTHLY') {
-        const now = new Date();
+    setNextDeadline(periodeDate, frequency = 'MONTHLY') {
+        const now = new Date(periodeDate);
         switch (frequency) {
             case 'WEEKLY':
                 return new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
@@ -30,8 +30,8 @@ class RentService {
             throw new Error('Shop introuvable');
         }
 
-        // Définir la date d'échéance en fonction de la fréquence
-        rentData.nextDeadline = this.setNextDeadline(rentData.frequency);
+        // A la création d'une location, on définit la date de la prochaine échéance en fonction de la date de début et de la fréquence
+        rentData.nextDeadline = this.setNextDeadline(rentData.startDate, rentData.frequency);
 
         return await rentRepository.createData(rentData);
     }
@@ -80,30 +80,37 @@ class RentService {
             throw new Error('Seules les locations actives peuvent être payées');
         }
 
-        // Mettre à jour la date d'échéance pour la prochaine période
-        rent.nextDeadline = this.setNextDeadline(rent.frequency);
+        // Au paiement d'une location, on met à jour la date de la prochaine échéance en fonction de la dernière échéance et la fréquence
+        rent.nextDeadline = this.setNextDeadline(rent.nextDeadline, rent.frequency);
 
         let transactionData;
-        try {
-            transactionData = {
-                type: 'LOYER',
-                total: rent.amount,
-                rentId: rent._id,
-                date: new Date(),
-                userId,
-                periode: new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }),
-            };
-            await transactionRepository.create(transactionData);
-        } catch (error) {
-            // Duplicate key error -> payment for this rent and period already exists
-            if (error && (error.code === 11000)) {
-                throw new Error('Le loyer pour cette periode a deja ete paye');
-            }
-            throw error;
-        }
+        await this.createTransaction(rent, userId);
         await rent.save();
 
         return { rent, transaction: transactionData };
+    }
+
+    async createTransaction(rent, userId) {
+        try {
+          transactionData = {
+            type: "LOYER",
+            total: rent.amount,
+            rentId: rent._id,
+            date: new Date(),
+            userId,
+            periode: new Date().toLocaleDateString("fr-FR", {
+              month: "long",
+              year: "numeric",
+            }),
+          };
+          await transactionRepository.create(transactionData);
+        } catch (error) {
+          // Duplicate key error -> payment for this rent and period already exists
+          if (error && error.code === 11000) {
+            throw new Error("Le loyer pour cette periode a deja ete paye");
+          }
+          throw error;
+        }
     }
 }
 
