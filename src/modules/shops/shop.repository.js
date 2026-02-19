@@ -32,33 +32,53 @@ class ShopRepository {
 
     async findByOwnerUserId(ownerUserId){
         const pipeline = [
-            { $match: { ownerUserId: new (require('mongoose')).Types.ObjectId(ownerUserId) } },
-            {
-                $lookup: {
-                    from: 'boxes',
-                    localField: 'boxId',
-                    foreignField: '_id',
-                    as: 'assignedBox',
-                },
+          {
+            $match: {
+              ownerUserId: new (require("mongoose").Types.ObjectId)(
+                ownerUserId
+              ),
             },
-            {
-                $addFields: {
-                    assignedBox: { $arrayElemAt: ['$assignedBox', 0] },
-                    boxId: '$boxId',
-                },
+          },
+          {
+            $lookup: {
+              from: "boxes",
+              localField: "boxId",
+              foreignField: "_id",
+              as: "assignedBox",
             },
-            {
-                $project: {
-                    _id: 1,
-                    name: 1,
-                    status: 1,
-                    ownerUserId: 1,
-                    boxId: { $toString: '$boxId' },
-                    assignedBox: '$assignedBox',
-                    createdAt: 1,
-                    updatedAt: 1,
-                },
+          },
+          {
+            $addFields: {
+              assignedBox: { $arrayElemAt: ["$assignedBox", 0] },
+              boxId: "$boxId",
             },
+          },
+          {
+            $lookup: {
+              from: "rents",
+              localField: "_id",
+              foreignField: "shopId",
+              as: "rent",
+            },
+          },
+          {
+            $addFields: {
+              activeRent: { $arrayElemAt: ["$rent", 0] },
+            },
+          },
+          {
+            $project: {
+              _id: 1,
+              name: 1,
+              status: 1,
+              ownerUserId: 1,
+              boxId: { $toString: "$boxId" },
+              assignedBox: "$assignedBox",
+              activeRent: "$activeRent",
+              createdAt: 1,
+              updatedAt: 1,
+            },
+          },
         ];
 
         const result = await Shop.aggregate(pipeline);
@@ -95,6 +115,19 @@ class ShopRepository {
                     assignedBox: { $arrayElemAt: ['$assignedBox', 0] },
                 },
             },
+            {
+                $lookup: {
+                    from: 'rents',
+                    localField: '_id',
+                    foreignField: 'shopId',
+                    as: 'rent',
+                },
+            },
+            {
+                $addFields: {
+                    activeRent: { $arrayElemAt: ['$rent', 0] },
+                },
+            },
         ];
 
         if (ownerFullName) {
@@ -121,6 +154,7 @@ class ShopRepository {
                         _id: '$ownerUser._id',
                         profile: '$ownerUser.profile',
                     },
+                    activeRent: '$activeRent',
                 },
             },
             { $skip: (page - 1) * limit },

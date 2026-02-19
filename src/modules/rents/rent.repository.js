@@ -6,10 +6,10 @@ class RentRepository {
         return await rent.save();
     }
 
-    async findAll(page = 1, limit = 10, populateAll = false) {
+    async findAll(filter = {}, page = 1, limit = 10, populateAll = false) {
         const skip = (page - 1) * limit;
         const [rents, total] = await Promise.all([
-            populateAll ? Rent.find()
+            populateAll ? Rent.find(filter)
                 .populate('box')
                 .populate('shop')
             .skip(skip).limit(limit) : Rent.find().skip(skip).limit(limit),

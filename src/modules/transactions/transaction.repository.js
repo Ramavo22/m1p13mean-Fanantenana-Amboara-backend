@@ -13,13 +13,13 @@ class TransactionRepository {
     }
 
     // Récupérer toutes les transactions filtrées d'un utilisateur
-    async findByUserId(userId, type, startDate, endDate, page = 1, limit = 10) {
+    async findByUserId(filters = {}, page = 1, limit = 10) {
         const skip = (page - 1) * limit;
-        const filter = { userId };
-        if (type) filter.type = type;
-        if (startDate || endDate) filter.date = {};
-        if (startDate) filter.date.$gte = new Date(startDate);
-        if (endDate) filter.date.$lte = new Date(endDate);
+        const filter = { userId: filters.userId };
+        if (filters.type) filter.type = filters.type;
+        if (filters.startDate || filters.endDate) filter.date = {};
+        if (filters.startDate) filter.date.$gte = new Date(filters.startDate);
+        if (filters.endDate) filter.date.$lte = new Date(filters.endDate);
         const transactions = await Transaction.find(filter)
             .skip(skip)
             .limit(limit)
@@ -37,13 +37,13 @@ class TransactionRepository {
     }
 
     // Récupérer toutes les transactions filtrées
-    async findAll(type, startDate, endDate, page = 1, limit = 10) {
+    async findAll(filters = {}, page = 1, limit = 10) {
         const skip = (page - 1) * limit;
         const filter = {};
-        if (type) filter.type = type;
-        if (startDate || endDate) filter.date = {};
-        if (startDate) filter.date.$gte = new Date(startDate);
-        if (endDate) filter.date.$lte = new Date(endDate);
+        if (filters.type) filter.type = filters.type;
+        if (filters.startDate || filters.endDate) filter.date = {};
+        if (filters.startDate) filter.date.$gte = new Date(filters.startDate);
+        if (filters.endDate) filter.date.$lte = new Date(filters.endDate);
         const transactions = await Transaction.find(filter)
             .skip(skip)
             .limit(limit)

@@ -83,15 +83,24 @@ class RentService {
         // Mettre à jour la date d'échéance pour la prochaine période
         rent.nextDeadline = this.setNextDeadline(rent.frequency);
 
-        const transactionData = {
-            type: 'LOYER',
-            total: rent.amount,
-            rentId: rent._id,
-            date: new Date(),
-            userId,
-            periode: new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }),
+        let transactionData;
+        try {
+            transactionData = {
+                type: 'LOYER',
+                total: rent.amount,
+                rentId: rent._id,
+                date: new Date(),
+                userId,
+                periode: new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }),
+            };
+            await transactionRepository.create(transactionData);
+        } catch (error) {
+            // Duplicate key error -> payment for this rent and period already exists
+            if (error && (error.code === 11000)) {
+                throw new Error('Le loyer pour cette periode a deja ete paye');
+            }
+            throw error;
         }
-        await transactionRepository.createData(transactionData);
         await rent.save();
 
         return { rent, transaction: transactionData };

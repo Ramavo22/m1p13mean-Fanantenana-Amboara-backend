@@ -34,15 +34,15 @@ class TransactionService {
     }
 
     // Récupérer toutes les transactions filtrées d'un utilisateur
-    async getTransactionsByUserId(userId, type, startDate, endDate, page = 1, limit = 10) {
-        await this.validateTransactionFilters(type, startDate, endDate);
-        return await transactionRepository.findByUserId(userId, type, startDate, endDate, page, limit);
+    async getTransactionsByUserId(filters = {}, page = 1, limit = 10) {
+        await this.validateTransactionFilters(filters.type, filters.startDate, filters.endDate);
+        return await transactionRepository.findByUserId(filters, page, limit);
     }
 
     // Récupérer toutes les transactions filtrées
-    async getAllTransactions(type, startDate, endDate, page = 1, limit = 10) {
-        await this.validateTransactionFilters(type, startDate, endDate);
-        return await transactionRepository.findAll(type, startDate, endDate, page, limit);
+    async getAllTransactions(filters = {}, page = 1, limit = 10) {
+        await this.validateTransactionFilters(filters.type, filters.startDate, filters.endDate);
+        return await transactionRepository.findAll(filters, page, limit);
     }
 
     async validateTransactionFilters(type, startDate, endDate) {

@@ -19,8 +19,18 @@ const transactionSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true,
-    }
+    },
+    rentId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Rent',
+    },
+    periode: {
+        type: String,
+    },
 });
+
+// Empêcher les paiements en double pour une même location et période
+transactionSchema.index({userId: 1, rentId: 1, periode: 1, type: 1 }, { unique: true, partialFilterExpression: { type: 'LOYER' } });
 
 const Transaction = mongoose.model('Transaction', transactionSchema);
 
