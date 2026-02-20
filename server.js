@@ -14,6 +14,7 @@ const startServer = async () => {
     app.listen(PORT, () => {
       console.log(`✓ Serveur démarré sur le port ${PORT}`);
       console.log(`✓ L'API est disponible sur http://localhost:${PORT}`);
+      console.log(`✓ Documentation Swagger disponible sur http://localhost:${PORT}/api-docs`);
     });
   } catch (error) {
     console.error('✗ Erreur au démarrage du serveur:', error.message);

@@ -14,12 +14,6 @@ const boxSchema = new mongoose.Schema(
         rent: {
             type: Number,
             require: true
-        },
-        userId: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'User',
-            required: false
-
         }
     },
     {

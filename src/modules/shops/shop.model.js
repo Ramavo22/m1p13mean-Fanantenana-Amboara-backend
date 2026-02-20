@@ -17,6 +17,11 @@ const ShopSchema = new mongoose.Schema(
       ref: 'User',
       required: true
     },
+    boxId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Box',
+      required: false
+    }
   },
   { timestamps: true }
 );

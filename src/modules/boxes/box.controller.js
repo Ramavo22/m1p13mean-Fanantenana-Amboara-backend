@@ -2,23 +2,6 @@ const boxService = require('./box.service');
 
 class BoxController {
 
-
-  async assignateBoxToUser(req,res){
-    try{
-      const assignationData = req.body; 
-      const {boxUpdated, isAssignate} = await boxService.assignateOrDesassignateUserToBox(assignationData);
-      return res.status(200).json({
-        message: `La box "${boxUpdated.label} a été ${isAssignate ? "assignée" : "désassignée"} avec succèss"`
-      })
-    }
-    catch(error){
-      return res.status(400).json({
-        success: false,
-        message: error.message
-      })
-    }
-  }
-
   // Créer une box
   async create(req, res) {
     try {
