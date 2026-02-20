@@ -1,4 +1,5 @@
 const Rent = require('./rent.model');
+const mongoose = require('mongoose');
 
 class RentRepository {
     async createData(rentData) {
@@ -37,6 +38,7 @@ class RentRepository {
     async delete(id) {
         return await Rent.findByIdAndDelete(id);
     }
+
 }
 
 module.exports = new RentRepository();

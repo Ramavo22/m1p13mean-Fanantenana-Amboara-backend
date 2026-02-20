@@ -41,8 +41,6 @@ const rentSchema = new mongoose.Schema(
 
 // Empecher les locations actives en double pour une même box
 rentSchema.index({ boxId: 1, status: 1 }, { unique: true, partialFilterExpression: { status: 'ACTIVE' } }); 
-// Recherche rapide des locations actives pour une box
-rentSchema.index({ boxId: 1, status: 1 });
 // Retard de loyer
 rentSchema.index({ status: 1, nextDeadline: 1 });
 

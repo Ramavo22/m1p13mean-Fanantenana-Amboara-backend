@@ -9,7 +9,7 @@ class RentController {
             res.status(201).json({
                 success: true,
                 data: rent,
-                message: 'Location créée avec succès'
+                message: 'Rent created successfully'
             });
         } catch (error) {
             res.status(400).json({ 
@@ -44,7 +44,7 @@ class RentController {
             if (!rent) {
                 return res.status(404).json({ 
                     success: false,
-                    message: 'Location non trouvée',
+                    message: 'Rent not found',
                  });
             }
             res.json({
@@ -66,7 +66,7 @@ class RentController {
             res.json({
                 success: true,
                 data: rent,
-                message: 'Location mise à jour avec succès'
+                message: 'Rent updated successfully'
             });
         } catch (error) {
             res.status(400).json({ 
@@ -82,7 +82,7 @@ class RentController {
             await rentService.deleteRent(req.params.id);
             res.json({
                 success: true,
-                message: 'Location supprimée avec succès'
+                message: 'Rent deleted successfully'
             });
         } catch (error) {
             res.status(500).json({ 
@@ -95,11 +95,11 @@ class RentController {
     // PATCH /api/rents/:id/pay
     async payRent(req, res) {
         try {
-            const result = await rentService.payRent(req.params.id, req.body.userId);
+            const result = await rentService.payRentById(req.params.id, req.body.userId, req.body.periode);
             res.json({
                 success: true,
                 data: result,
-                message: 'Location payée avec succès'
+                message: 'Rent paid successfully'
             });
         } catch (error) {
             res.status(400).json({ 
