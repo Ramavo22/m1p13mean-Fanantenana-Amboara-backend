@@ -67,6 +67,11 @@ const options = {
               $ref: '#/components/schemas/Box',
               description: 'Details de la box assignee au shop',
             },
+            activeRent: {
+              nullable: true,
+              $ref: '#/components/schemas/Rent',
+              description: 'Location active associee au shop',
+            },
             createdAt: {
               type: 'string',
               format: 'date-time',
@@ -205,12 +210,6 @@ const options = {
               description: 'Prix de location',
               example: 1500,
             },
-            shopId: {
-              type: 'string',
-              description: 'ID du shop assigne',
-              nullable: true,
-              example: '66b2f0d8cdbd8f1a9d2f1c44',
-            },
             createdAt: {
               type: 'string',
               format: 'date-time',
@@ -225,13 +224,8 @@ const options = {
         },
         BoxCreate: {
           type: 'object',
-          required: ['_id', 'label', 'rent'],
+          required: ['label', 'rent'],
           properties: {
-            _id: {
-              type: 'string',
-              description: 'ID unique de la box',
-              example: '66b2f0d8cdbd8f1a9d2f1c33',
-            },
             label: {
               type: 'string',
               description: 'Libelle de la box',
@@ -248,12 +242,6 @@ const options = {
               enum: ['AVAILABLE', 'RENTED', 'REPAIR'],
               description: 'Etat de la box',
               example: 'AVAILABLE',
-            },
-            shopId: {
-              type: 'string',
-              description: 'ID du shop assigne',
-              nullable: true,
-              example: '66b2f0d8cdbd8f1a9d2f1c44',
             },
           },
         },
@@ -276,12 +264,6 @@ const options = {
               enum: ['AVAILABLE', 'RENTED', 'REPAIR'],
               description: 'Etat de la box',
               example: 'REPAIR',
-            },
-            shopId: {
-              type: 'string',
-              description: 'ID du shop assigne',
-              nullable: true,
-              example: '66b2f0d8cdbd8f1a9d2f1c44',
             },
           },
         },
@@ -309,15 +291,9 @@ const options = {
             },
             frequency: {
               type: 'string',
-              enum: ['DAILY', 'WEEKLY', 'MONTHLY'],
+              enum: ['WEEKLY', 'MONTHLY', 'YEARLY'],
               description: 'Frequence de paiement du loyer (obligatoire pour une assignation, ignore pour une desassignation)',
               example: 'MONTHLY',
-            },
-            startDate: {
-              type: 'string',
-              format: 'date-time',
-              description: 'Date de debut de location (obligatoire pour une assignation, ignore pour une desassignation)',
-              example: '2024-01-01T00:00:00.000Z',
             },
             boxId: {
               type: 'string',
@@ -333,6 +309,152 @@ const options = {
               type: 'boolean',
               description: 'true pour assigner, false pour desassigner',
               example: true,
+            },
+          },
+        },
+        Rent: {
+          type: 'object',
+          properties: {
+            _id: {
+              type: 'string',
+              description: 'ID unique de la location',
+              example: '66b2f0d8cdbd8f1a9d2f1c55',
+            },
+            boxId: {
+              type: 'string',
+              description: 'ID de la box louee',
+              example: '66b2f0d8cdbd8f1a9d2f1c33',
+            },
+            shopId: {
+              type: 'string',
+              description: 'ID du shop locataire',
+              example: '66b2f0d8cdbd8f1a9d2f1c44',
+            },
+            startDate: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Date de debut de la location',
+            },
+            nextDeadline: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Prochaine date d echeance',
+            },
+            status: {
+              type: 'string',
+              enum: ['ACTIVE', 'EXPIRED', 'CANCELLED'],
+              description: 'Statut de la location',
+              example: 'ACTIVE',
+            },
+            amount: {
+              type: 'number',
+              minimum: 0,
+              description: 'Montant du loyer',
+              example: 1500,
+            },
+            frequency: {
+              type: 'string',
+              enum: ['WEEKLY', 'MONTHLY', 'YEARLY'],
+              description: 'Frequence de paiement',
+              example: 'MONTHLY',
+            },
+          },
+        },
+        RentCreate: {
+          type: 'object',
+          required: ['boxId', 'shopId', 'startDate', 'amount', 'frequency'],
+          properties: {
+            boxId: {
+              type: 'string',
+              description: 'ID de la box louee',
+              example: '66b2f0d8cdbd8f1a9d2f1c33',
+            },
+            shopId: {
+              type: 'string',
+              description: 'ID du shop locataire',
+              example: '66b2f0d8cdbd8f1a9d2f1c44',
+            },
+            startDate: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Date de debut de la location',
+              example: '2026-02-01T00:00:00.000Z',
+            },
+            amount: {
+              type: 'number',
+              minimum: 0,
+              description: 'Montant du loyer',
+              example: 1500,
+            },
+            frequency: {
+              type: 'string',
+              enum: ['WEEKLY', 'MONTHLY', 'YEARLY'],
+              description: 'Frequence de paiement',
+              example: 'MONTHLY',
+            },
+            status: {
+              type: 'string',
+              enum: ['ACTIVE', 'EXPIRED', 'CANCELLED'],
+              description: 'Statut de la location',
+              example: 'ACTIVE',
+            },
+          },
+        },
+        RentUpdate: {
+          type: 'object',
+          properties: {
+            startDate: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Date de debut de la location',
+            },
+            nextDeadline: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Prochaine date d echeance',
+            },
+            amount: {
+              type: 'number',
+              minimum: 0,
+              description: 'Montant du loyer',
+            },
+            frequency: {
+              type: 'string',
+              enum: ['WEEKLY', 'MONTHLY', 'YEARLY'],
+              description: 'Frequence de paiement',
+            },
+            status: {
+              type: 'string',
+              enum: ['ACTIVE', 'EXPIRED', 'CANCELLED'],
+              description: 'Statut de la location',
+            },
+          },
+        },
+        RentPayRequest: {
+          type: 'object',
+          required: ['userId'],
+          properties: {
+            userId: {
+              type: 'string',
+              description: "ID de l'utilisateur qui paie",
+              example: '66b2f0d8cdbd8f1a9d2f1c11',
+            },
+            periode: {
+              type: 'string',
+              pattern: '^\\d{4}-\\d{2}$',
+              description: 'Periode du loyer au format YYYY-MM',
+              example: '2026-02',
+            },
+          },
+        },
+        RentPaymentResult: {
+          type: 'object',
+          properties: {
+            rent: {
+              $ref: '#/components/schemas/Rent',
+            },
+            transaction: {
+              $ref: '#/components/schemas/Transaction',
             },
           },
         },
@@ -582,11 +704,27 @@ const options = {
               format: 'date-time',
               description: 'Date de modification',
             },
+            rentId: {
+              type: 'string',
+              nullable: true,
+              description: 'ID de la location liee (present surtout pour les loyers)',
+            },
+            periode: {
+              type: 'string',
+              nullable: true,
+              pattern: '^\\d{4}-\\d{2}$',
+              description: 'Periode de paiement au format YYYY-MM (pour les loyers)',
+              example: '2026-02',
+            },
           },
         },
         TransactionCreate: {
           type: 'object',
-          required: ['type', 'total', 'userId'],
+          required: ['type', 'userId'],
+          anyOf: [
+            { required: ['total'] },
+            { required: ['amount'] },
+          ],
           properties: {
             type: {
               type: 'string',
@@ -599,10 +737,27 @@ const options = {
               description: 'Montant total de la transaction',
               example: 120.5,
             },
+            amount: {
+              type: 'number',
+              minimum: 0,
+              description: 'Alias accepte de total',
+              example: 120.5,
+            },
             userId: {
               type: 'string',
               description: "ID de l'utilisateur",
               example: '66b2f0d8cdbd8f1a9d2f1c11',
+            },
+            rentId: {
+              type: 'string',
+              description: 'ID de la location (type LOYER)',
+              example: '66b2f0d8cdbd8f1a9d2f1c55',
+            },
+            periode: {
+              type: 'string',
+              pattern: '^\\d{4}-\\d{2}$',
+              description: 'Periode de paiement au format YYYY-MM (type LOYER)',
+              example: '2026-02',
             },
           },
         },
@@ -735,7 +890,10 @@ const options = {
           type: 'object',
           properties: {
             success: { type: 'boolean' },
-            data: { $ref: '#/components/schemas/ShopWithOwner' },
+            data: {
+              allOf: [{ $ref: '#/components/schemas/ShopWithOwner' }],
+              nullable: true,
+            },
           },
         },
         ApiResponseBox: {
@@ -755,6 +913,33 @@ const options = {
               items: { $ref: '#/components/schemas/Box' },
             },
             pagination: { $ref: '#/components/schemas/Pagination' },
+          },
+        },
+        ApiResponseRent: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+            data: { $ref: '#/components/schemas/Rent' },
+          },
+        },
+        ApiResponseRentListPaged: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            data: {
+              type: 'array',
+              items: { $ref: '#/components/schemas/Rent' },
+            },
+            pagination: { $ref: '#/components/schemas/Pagination' },
+          },
+        },
+        ApiResponseRentPayment: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+            data: { $ref: '#/components/schemas/RentPaymentResult' },
           },
         },
         ApiResponseProductType: {

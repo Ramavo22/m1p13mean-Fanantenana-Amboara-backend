@@ -62,6 +62,11 @@
             "$ref": "#/components/schemas/Box",
             "description": "Details de la box assignee au shop"
           },
+          "activeRent": {
+            "nullable": true,
+            "$ref": "#/components/schemas/Rent",
+            "description": "Location active associee au shop"
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time",
@@ -215,12 +220,6 @@
             "description": "Prix de location",
             "example": 1500
           },
-          "shopId": {
-            "type": "string",
-            "description": "ID du shop assigne",
-            "nullable": true,
-            "example": "66b2f0d8cdbd8f1a9d2f1c44"
-          },
           "createdAt": {
             "type": "string",
             "format": "date-time",
@@ -236,16 +235,10 @@
       "BoxCreate": {
         "type": "object",
         "required": [
-          "_id",
           "label",
           "rent"
         ],
         "properties": {
-          "_id": {
-            "type": "string",
-            "description": "ID unique de la box",
-            "example": "66b2f0d8cdbd8f1a9d2f1c33"
-          },
           "label": {
             "type": "string",
             "description": "Libelle de la box",
@@ -266,12 +259,6 @@
             ],
             "description": "Etat de la box",
             "example": "AVAILABLE"
-          },
-          "shopId": {
-            "type": "string",
-            "description": "ID du shop assigne",
-            "nullable": true,
-            "example": "66b2f0d8cdbd8f1a9d2f1c44"
           }
         }
       },
@@ -298,12 +285,6 @@
             ],
             "description": "Etat de la box",
             "example": "REPAIR"
-          },
-          "shopId": {
-            "type": "string",
-            "description": "ID du shop assigne",
-            "nullable": true,
-            "example": "66b2f0d8cdbd8f1a9d2f1c44"
           }
         }
       },
@@ -341,18 +322,12 @@
           "frequency": {
             "type": "string",
             "enum": [
-              "DAILY",
               "WEEKLY",
-              "MONTHLY"
+              "MONTHLY",
+              "YEARLY"
             ],
             "description": "Frequence de paiement du loyer (obligatoire pour une assignation, ignore pour une desassignation)",
             "example": "MONTHLY"
-          },
-          "startDate": {
-            "type": "string",
-            "format": "date-time",
-            "description": "Date de debut de location (obligatoire pour une assignation, ignore pour une desassignation)",
-            "example": "2024-01-01T00:00:00.000Z"
           },
           "boxId": {
             "type": "string",
@@ -368,6 +343,184 @@
             "type": "boolean",
             "description": "true pour assigner, false pour desassigner",
             "example": true
+          }
+        }
+      },
+      "Rent": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "description": "ID unique de la location",
+            "example": "66b2f0d8cdbd8f1a9d2f1c55"
+          },
+          "boxId": {
+            "type": "string",
+            "description": "ID de la box louee",
+            "example": "66b2f0d8cdbd8f1a9d2f1c33"
+          },
+          "shopId": {
+            "type": "string",
+            "description": "ID du shop locataire",
+            "example": "66b2f0d8cdbd8f1a9d2f1c44"
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Date de debut de la location"
+          },
+          "nextDeadline": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Prochaine date d echeance"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "EXPIRED",
+              "CANCELLED"
+            ],
+            "description": "Statut de la location",
+            "example": "ACTIVE"
+          },
+          "amount": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Montant du loyer",
+            "example": 1500
+          },
+          "frequency": {
+            "type": "string",
+            "enum": [
+              "WEEKLY",
+              "MONTHLY",
+              "YEARLY"
+            ],
+            "description": "Frequence de paiement",
+            "example": "MONTHLY"
+          }
+        }
+      },
+      "RentCreate": {
+        "type": "object",
+        "required": [
+          "boxId",
+          "shopId",
+          "startDate",
+          "amount",
+          "frequency"
+        ],
+        "properties": {
+          "boxId": {
+            "type": "string",
+            "description": "ID de la box louee",
+            "example": "66b2f0d8cdbd8f1a9d2f1c33"
+          },
+          "shopId": {
+            "type": "string",
+            "description": "ID du shop locataire",
+            "example": "66b2f0d8cdbd8f1a9d2f1c44"
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Date de debut de la location",
+            "example": "2026-02-01T00:00:00.000Z"
+          },
+          "amount": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Montant du loyer",
+            "example": 1500
+          },
+          "frequency": {
+            "type": "string",
+            "enum": [
+              "WEEKLY",
+              "MONTHLY",
+              "YEARLY"
+            ],
+            "description": "Frequence de paiement",
+            "example": "MONTHLY"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "EXPIRED",
+              "CANCELLED"
+            ],
+            "description": "Statut de la location",
+            "example": "ACTIVE"
+          }
+        }
+      },
+      "RentUpdate": {
+        "type": "object",
+        "properties": {
+          "startDate": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Date de debut de la location"
+          },
+          "nextDeadline": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Prochaine date d echeance"
+          },
+          "amount": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Montant du loyer"
+          },
+          "frequency": {
+            "type": "string",
+            "enum": [
+              "WEEKLY",
+              "MONTHLY",
+              "YEARLY"
+            ],
+            "description": "Frequence de paiement"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "EXPIRED",
+              "CANCELLED"
+            ],
+            "description": "Statut de la location"
+          }
+        }
+      },
+      "RentPayRequest": {
+        "type": "object",
+        "required": [
+          "userId"
+        ],
+        "properties": {
+          "userId": {
+            "type": "string",
+            "description": "ID de l'utilisateur qui paie",
+            "example": "66b2f0d8cdbd8f1a9d2f1c11"
+          },
+          "periode": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}$",
+            "description": "Periode du loyer au format YYYY-MM",
+            "example": "2026-02"
+          }
+        }
+      },
+      "RentPaymentResult": {
+        "type": "object",
+        "properties": {
+          "rent": {
+            "$ref": "#/components/schemas/Rent"
+          },
+          "transaction": {
+            "$ref": "#/components/schemas/Transaction"
           }
         }
       },
@@ -676,6 +829,18 @@
             "type": "string",
             "format": "date-time",
             "description": "Date de modification"
+          },
+          "rentId": {
+            "type": "string",
+            "nullable": true,
+            "description": "ID de la location liee (present surtout pour les loyers)"
+          },
+          "periode": {
+            "type": "string",
+            "nullable": true,
+            "pattern": "^\\d{4}-\\d{2}$",
+            "description": "Periode de paiement au format YYYY-MM (pour les loyers)",
+            "example": "2026-02"
           }
         }
       },
@@ -683,8 +848,19 @@
         "type": "object",
         "required": [
           "type",
-          "total",
           "userId"
+        ],
+        "anyOf": [
+          {
+            "required": [
+              "total"
+            ]
+          },
+          {
+            "required": [
+              "amount"
+            ]
+          }
         ],
         "properties": {
           "type": {
@@ -702,10 +878,27 @@
             "description": "Montant total de la transaction",
             "example": 120.5
           },
+          "amount": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Alias accepte de total",
+            "example": 120.5
+          },
           "userId": {
             "type": "string",
             "description": "ID de l'utilisateur",
             "example": "66b2f0d8cdbd8f1a9d2f1c11"
+          },
+          "rentId": {
+            "type": "string",
+            "description": "ID de la location (type LOYER)",
+            "example": "66b2f0d8cdbd8f1a9d2f1c55"
+          },
+          "periode": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}$",
+            "description": "Periode de paiement au format YYYY-MM (type LOYER)",
+            "example": "2026-02"
           }
         }
       },
@@ -917,7 +1110,12 @@
             "type": "boolean"
           },
           "data": {
-            "$ref": "#/components/schemas/ShopWithOwner"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ShopWithOwner"
+              }
+            ],
+            "nullable": true
           }
         }
       },
@@ -949,6 +1147,51 @@
           },
           "pagination": {
             "$ref": "#/components/schemas/Pagination"
+          }
+        }
+      },
+      "ApiResponseRent": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/Rent"
+          }
+        }
+      },
+      "ApiResponseRentListPaged": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Rent"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination"
+          }
+        }
+      },
+      "ApiResponseRentPayment": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/RentPaymentResult"
           }
         }
       },
@@ -1500,6 +1743,301 @@
         }
       }
     },
+    "/api/rents": {
+      "post": {
+        "summary": "Creer une location",
+        "tags": [
+          "Rents"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RentCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Location creee avec succes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseRent"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      },
+      "get": {
+        "summary": "Recuperer toutes les locations",
+        "tags": [
+          "Rents"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            },
+            "description": "Numero de page"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            },
+            "description": "Nombre d'elements par page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste paginee des locations",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseRentListPaged"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/api/rents/{id}": {
+      "get": {
+        "summary": "Recuperer une location par ID",
+        "tags": [
+          "Rents"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID de la location"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Location trouvee",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseRent"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Supprimer une location",
+        "tags": [
+          "Rents"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID de la location"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Location supprimee avec succes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseMessage"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "put": {
+        "summary": "Mettre a jour une location",
+        "tags": [
+          "Rents"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID de la location"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RentUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Location mise a jour avec succes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseRent"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
+    "/api/rents/{id}/pay": {
+      "patch": {
+        "summary": "Payer un loyer",
+        "tags": [
+          "Rents"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID de la location"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RentPayRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Loyer paye avec succes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseRentPayment"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
     "/api/shops": {
       "post": {
         "summary": "Creer un shop",
@@ -1892,7 +2430,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Shop trouve avec box assignee",
+            "description": "Shop retourne (ou null si aucun) avec box assignee",
             "content": {
               "application/json": {
                 "schema": {
@@ -1906,9 +2444,6 @@
           },
           "403": {
             "$ref": "#/components/responses/Forbidden"
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFound"
           }
         }
       }
@@ -2002,6 +2537,14 @@
           },
           {
             "in": "query",
+            "name": "rentId",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filtrer par ID de location (principalement pour les loyers)"
+          },
+          {
+            "in": "query",
             "name": "startDate",
             "schema": {
               "type": "string",
@@ -2090,6 +2633,14 @@
           },
           {
             "in": "query",
+            "name": "rentId",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filtrer par ID de location (principalement pour les loyers)"
+          },
+          {
+            "in": "query",
             "name": "startDate",
             "schema": {
               "type": "string",
@@ -2162,9 +2713,6 @@
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFound"
           },
           "500": {
             "$ref": "#/components/responses/InternalServerError"

@@ -207,7 +207,7 @@ router.get('/:id', authenticateToken, authorizeRoles('ADMIN', 'ACHETEUR'), (req,
  *         description: ID du proprietaire
  *     responses:
  *       200:
- *         description: Shop trouve avec box assignee
+ *         description: Shop retourne (ou null si aucun) avec box assignee
  *         content:
  *           application/json:
  *             schema:
@@ -216,8 +216,6 @@ router.get('/:id', authenticateToken, authorizeRoles('ADMIN', 'ACHETEUR'), (req,
  *         $ref: '#/components/responses/Unauthorized'
  *       403:
  *         $ref: '#/components/responses/Forbidden'
- *       404:
- *         $ref: '#/components/responses/NotFound'
  */
 router.get('/owner/:ownerUserId', authenticateToken, (req, res) => shopController.getByOwnerUserId(req, res));
 

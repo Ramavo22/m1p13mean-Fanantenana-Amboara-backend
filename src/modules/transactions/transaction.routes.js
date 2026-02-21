@@ -70,6 +70,11 @@ router.post('/', authenticateToken, (req, res) => transactionController.create(r
  *           enum: [ACHAT, RECHARGE, LOYER]
  *         description: Filtrer par type de transaction
  *       - in: query
+ *         name: rentId
+ *         schema:
+ *           type: string
+ *         description: Filtrer par ID de location (principalement pour les loyers)
+ *       - in: query
  *         name: startDate
  *         schema:
  *           type: string
@@ -119,8 +124,6 @@ router.get('/user/:userId', authenticateToken, (req, res) => transactionControll
  *               $ref: '#/components/schemas/ApiResponseTransaction'
  *       400:
  *         $ref: '#/components/responses/BadRequest'
- *       404:
- *         $ref: '#/components/responses/NotFound'
  *       500:
  *         $ref: '#/components/responses/InternalServerError'
  */
@@ -153,6 +156,11 @@ router.get('/:id', authenticateToken, (req, res) => transactionController.getByI
  *           type: string
  *           enum: [ACHAT, RECHARGE, LOYER]
  *         description: Filtrer par type de transaction
+ *       - in: query
+ *         name: rentId
+ *         schema:
+ *           type: string
+ *         description: Filtrer par ID de location (principalement pour les loyers)
  *       - in: query
  *         name: startDate
  *         schema:
