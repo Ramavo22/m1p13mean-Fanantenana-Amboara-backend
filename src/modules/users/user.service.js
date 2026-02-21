@@ -8,14 +8,14 @@ class UserService {
     // Vérifier si le login existe déjà
     const loginExists = await userRepository.loginExists(userData.login);
     if (loginExists) {
-      throw new Error('Ce login est déjà utilisé');
+      throw new Error('Already used login');
     }
 
     // Vérifier si l'email existe (si fourni)
     if (userData.profile?.email) {
       const emailExists = await userRepository.emailExists(userData.profile.email);
       if (emailExists) {
-        throw new Error('Cet email est déjà utilisé');
+        throw new Error('Already used email');
       }
     }
 
@@ -30,7 +30,7 @@ class UserService {
   async getUserById(userId) {
     const user = await userRepository.findById(userId);
     if (!user) {
-      throw new Error('Utilisateur non trouvé');
+      throw new Error('User not found');
     }
     return user;
   }
@@ -39,7 +39,7 @@ class UserService {
   async getUserByLogin(login) {
     const user = await userRepository.findByLogin(login);
     if (!user) {
-      throw new Error('Utilisateur non trouvé');
+      throw new Error('User not found');
     }
     return user;
   }
@@ -54,14 +54,14 @@ class UserService {
     // Vérifier que l'utilisateur existe
     const user = await userRepository.findById(userId);
     if (!user) {
-      throw new Error('Utilisateur non trouvé');
+      throw new Error('User not found');
     }
 
     // Vérifier unicité du login si modifié
     if (updateData.login && updateData.login !== user.login) {
       const loginExists = await userRepository.loginExists(updateData.login);
       if (loginExists) {
-        throw new Error('Ce login est déjà utilisé');
+        throw new Error('Already used login');
       }
     }
 
@@ -69,7 +69,7 @@ class UserService {
     if (updateData.profile?.email) {
       const emailExists = await userRepository.emailExists(updateData.profile.email);
       if (emailExists) {
-        throw new Error('Cet email est déjà utilisé');
+        throw new Error('Already used email');
       }
     }
 
@@ -85,7 +85,7 @@ class UserService {
   async deleteUser(userId) {
     const user = await userRepository.findById(userId);
     if (!user) {
-      throw new Error('Utilisateur non trouvé');
+      throw new Error('User not found');
     }
     return await userRepository.delete(userId);
   }
@@ -94,7 +94,7 @@ class UserService {
   async getUsersByRole(role) {
     const validRoles = ['ADMIN', 'BOUTIQUE', 'ACHETEUR'];
     if (!validRoles.includes(role)) {
-      throw new Error('Rôle invalide');
+      throw new Error('Invalid role');
     }
     return await userRepository.findByRole(role);
   }
@@ -103,7 +103,7 @@ class UserService {
   async getUsersByStatus(status) {
     const validStatuses = ['ACTIVE', 'INACTIVE', 'SUSPENDED'];
     if (!validStatuses.includes(status)) {
-      throw new Error('Statut invalide');
+      throw new Error('Invalid status');
     }
     return await userRepository.findByStatus(status);
   }
@@ -112,12 +112,12 @@ class UserService {
   async changeUserStatus(userId, newStatus) {
     const validStatuses = ['ACTIVE', 'INACTIVE', 'SUSPENDED'];
     if (!validStatuses.includes(newStatus)) {
-      throw new Error('Statut invalide');
+      throw new Error('Invalid status');
     }
 
     const user = await userRepository.findById(userId);
     if (!user) {
-      throw new Error('Utilisateur non trouvé');
+      throw new Error('User not found');
     }
 
     return await userRepository.update(userId, { status: newStatus });
@@ -127,15 +127,15 @@ class UserService {
   async updateUserSolde(userId, amount, type) {
     const user = await userRepository.findById(userId);
     if (!user) {
-      throw new Error('Utilisateur non trouvé');
+      throw new Error('User not found');
     }
 
     if (!['ACHAT', 'RECHARGE'].includes(type)) {
-      throw new Error('Type de transaction invalide');
+      throw new Error('Invalid transaction type');
     }
 
     if (typeof amount !== 'number' || Number.isNaN(amount) || amount <= 0) {
-      throw new Error('Le montant doit être supérieur à zéro');
+      throw new Error('Amount must be a positive number');
     }
 
     const currentSolde = user.profile.solde || 0;

@@ -5,20 +5,20 @@ class BoxService {
 
   async createBox(boxData) {
     if (!boxData.label) {
-      throw new Error('Le label est obligatoire');
+      throw new Error('The box label is required');
     }
 
     if (boxData.rent == null || boxData.rent < 0) {
-      throw new Error('Le prix de location doit être supérieur ou égal à 0');
+      throw new Error('The rent price must be greater than or equal to 0');
     }
 
     if (boxData.state && !BoxUtils.validateState(boxData.state)) {
-      throw new Error('État de box invalide');
+      throw new Error('Invalid box state');
     }
 
     const existingBox = await boxRepository.findById(boxData._id);
     if (existingBox) {
-      throw new Error('Une box avec cet identifiant existe déjà');
+      throw new Error('A box with this ID already exists');
     }
 
     return await boxRepository.create(boxData);
@@ -31,7 +31,7 @@ class BoxService {
   async getBoxById(boxId) {
     const box = await boxRepository.findById(boxId);
     if (!box) {
-      throw new Error('Box non trouvée');
+      throw new Error('Box not found');
     }
     return box;
   }
@@ -39,21 +39,21 @@ class BoxService {
   async updateBox(boxId, updateData) {
     const box = await boxRepository.findById(boxId);
     if (!box) {
-      throw new Error('Box non trouvée');
+      throw new Error('Box not found');
     }
 
     if (updateData.state) {
       if (!BoxUtils.validateState(updateData.state)) {
-        throw new Error('État de box invalide');
+        throw new Error('Invalid box state');
       }
 
       if (!BoxUtils.validateStateChange(box.state, updateData.state)) {
-        throw new Error('Transition d’état non autorisée');
+        throw new Error('Invalid state transition');
       }
     }
 
     if (updateData.rent != null && updateData.rent < 0) {
-      throw new Error('Le prix de location doit être supérieur ou égal à 0');
+      throw new Error('The rent price must be greater than or equal to 0');
     }
 
     return await boxRepository.update(boxId, updateData);
@@ -62,11 +62,11 @@ class BoxService {
   async deleteBox(boxId) {
     const box = await boxRepository.findById(boxId);
     if (!box) {
-      throw new Error('Box non trouvée');
+      throw new Error('Box not found');
     }
 
     if (box.state === 'RENTED') {
-      throw new Error('Impossible de supprimer une box en cours de location');
+      throw new Error('A rented box cannot be deleted');
     }
 
     return await boxRepository.delete(boxId);
@@ -74,16 +74,16 @@ class BoxService {
 
   async changeBoxState(boxId, newState) {
     if (!BoxUtils.validateState(newState)) {
-      throw new Error('État de box invalide');
+      throw new Error('Invalid box state');
     }
 
     const box = await boxRepository.findById(boxId);
     if (!box) {
-      throw new Error('Box non trouvée');
+      throw new Error('Box not found');
     }
 
     if (!BoxUtils.validateStateChange(box.state, newState)) {
-      throw new Error('Transition d’état non autorisée');
+      throw new Error('Invalid state transition');
     }
 
     return await boxRepository.update(boxId, { state: newState });

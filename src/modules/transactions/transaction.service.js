@@ -6,15 +6,15 @@ class TransactionService {
         const amount = transactionData.total ?? transactionData.amount;
 
         if (typeof amount !== 'number' || Number.isNaN(amount) || amount <= 0) {
-            throw new Error('Le montant de la transaction doit être supérieur à zéro');
+            throw new Error('The transaction amount must be greater than zero');
         }
 
         if (!transactionData.type || !['ACHAT', 'LOYER', 'RECHARGE'].includes(transactionData.type)) {
-            throw new Error('Type de transaction invalide');
+            throw new Error('Invalid transaction type. Valid types are: ACHAT, LOYER, RECHARGE');
         }
         
         if (!transactionData.userId) {
-            throw new Error('L\'ID de l\'utilisateur est requis pour créer une transaction');
+            throw new Error('The user ID is required to create a transaction');
         }
 
         if (transactionData.total == null) {
@@ -29,7 +29,7 @@ class TransactionService {
     async getTransactionById(transactionId) {
         const transaction = await transactionRepository.findById(transactionId);
         if (!transaction) {
-            throw new Error('Transaction non trouvée');
+            throw new Error('Transaction not found');
         }     return transaction;
     }
 
@@ -49,20 +49,20 @@ class TransactionService {
         const validTypes = ['ACHAT', 'LOYER', 'RECHARGE'];
 
         if (type && !validTypes.includes(type)) {
-          throw new Error("Type de transaction invalide");
+          throw new Error("Invalid transaction type");
         }
 
         if (startDate && isNaN(Date.parse(startDate))) {
-          throw new Error("Date de début invalide");
+          throw new Error("Invalid start date");
         }
 
         if (endDate && isNaN(Date.parse(endDate))) {
-          throw new Error("Date de fin invalide");
+          throw new Error("Invalid end date");
         }
 
         if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
           throw new Error(
-            "La date de début doit être antérieure à la date de fin"
+            "The start date must be earlier than the end date"
           );
         }
     }

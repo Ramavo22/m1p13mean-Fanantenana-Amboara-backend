@@ -8,13 +8,13 @@ class TransactionController {
             const transaction = await transactionService.createTransaction(transactionData);
             return res.status(201).json({
                 success: true,
-                message: 'Transaction créée avec succès',
+                message: 'Transaction created successfully',
                 data: transaction,
             });
         } catch (error) {
             return res.status(400).json({
                 success: false,
-                message: error.message || 'Erreur lors de la création de la transaction',
+                message: error.message || 'Error creating transaction',
             });
         }
     }
@@ -34,14 +34,14 @@ class TransactionController {
             const transactions = await transactionService.getTransactionsByUserId(filters, page, limit);
             return res.status(200).json({
                 success: true,
-                message: 'Transactions récupérées avec succès',
+                message: 'Transactions retrieved successfully',
                 data: transactions.data,
                 pagination: transactions.pagination,
             });
         } catch (error) {
             return res.status(400).json({
                 success: false,
-                message: error.message || 'Erreur lors de la récupération des transactions',
+                message: error.message || 'Error retrieving transactions',
             });
         }
     }
@@ -60,14 +60,14 @@ class TransactionController {
             const transactions = await transactionService.getAllTransactions(filters, page, limit);
             return res.status(200).json({
                 success: true,
-                message: 'Transactions récupérées avec succès',
+                message: 'Transactions retrieved successfully',
                 data: transactions.data,
                 pagination: transactions.pagination,
             });
         } catch (error) {
             return res.status(400).json({
                 success: false,
-                message: error.message || 'Erreur lors de la récupération des transactions',
+                message: error.message || 'Error retrieving transactions',
             });
         }
     }
@@ -79,13 +79,13 @@ class TransactionController {
             const transaction = await transactionService.getTransactionById(transactionId);
             return res.status(200).json({
                 success: true,
-                message: 'Transaction récupérée avec succès',
+                message: 'Transaction retrieved successfully',
                 data: transaction,
             });
         } catch (error) {
             return res.status(400).json({
                 success: false,
-                message: error.message || 'Erreur lors de la récupération de la transaction',
+                message: error.message || 'Error retrieving transaction',
             });
         }
 

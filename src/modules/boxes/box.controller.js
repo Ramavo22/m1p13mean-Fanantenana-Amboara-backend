@@ -10,13 +10,13 @@ class BoxController {
 
       return res.status(201).json({
         success: true,
-        message: 'Box créée avec succès',
+        message: 'Box created successfully',
         data: box,
       });
     } catch (error) {
       return res.status(400).json({
         success: false,
-        message: error.message || 'Erreur lors de la création de la box',
+        message: error.message || 'Error creating the box',
       });
     }
   }
@@ -51,7 +51,7 @@ class BoxController {
     } catch (error) {
       return res.status(500).json({
         success: false,
-        message: error.message || 'Erreur lors de la récupération des boxes',
+        message: error.message || 'Error retrieving boxes',
       });
     }
   }
@@ -69,7 +69,7 @@ class BoxController {
     } catch (error) {
       return res.status(404).json({
         success: false,
-        message: error.message || 'Box non trouvée',
+        message: error.message || 'Box not found',
       });
     }
   }
@@ -84,13 +84,13 @@ class BoxController {
 
       return res.status(200).json({
         success: true,
-        message: 'Box mise à jour avec succès',
+        message: 'Box updated successfully',
         data: box,
       });
     } catch (error) {
       return res.status(400).json({
         success: false,
-        message: error.message || 'Erreur lors de la mise à jour de la box',
+        message: error.message || 'Error updating the box',
       });
     }
   }
@@ -103,12 +103,12 @@ class BoxController {
 
       return res.status(200).json({
         success: true,
-        message: 'Box supprimée avec succès',
+        message: 'Box deleted successfully',
       });
     } catch (error) {
       return res.status(404).json({
         success: false,
-        message: error.message || 'Box non trouvée',
+        message: error.message || 'Box not found',
       });
     }
   }
@@ -123,13 +123,13 @@ class BoxController {
 
       return res.status(200).json({
         success: true,
-        message: 'État de la box mis à jour avec succès',
+        message: 'Box state updated successfully',
         data: box,
       });
     } catch (error) {
       return res.status(400).json({
         success: false,
-        message: error.message || 'Erreur lors de la mise à jour de l’état',
+        message: error.message || 'Error updating the box state',
       });
     }
   }

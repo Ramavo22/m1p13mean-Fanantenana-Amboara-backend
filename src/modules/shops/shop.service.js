@@ -8,10 +8,10 @@ class ShopService {
   async createShop(data) {
     // Exemple de validation métier
     if (!data.name) {
-      throw new Error('Le nom du shop est obligatoire');
+      throw new Error('Shop name is required');
     }
     if (!data.ownerUserId) {
-      throw new Error('Le ownerUserId est obligatoire');
+      throw new Error('The ownerUserId is required');
     }
 
     return await shopRepository.create(data);
@@ -29,7 +29,7 @@ class ShopService {
     const shop = await shopRepository.findById(id);
 
     if (!shop) {
-      throw new Error('Shop introuvable');
+      throw new Error('Shop not found');
     }
 
     return shop;
@@ -45,7 +45,7 @@ class ShopService {
     const shop = await shopRepository.update(id, data);
 
     if (!shop) {
-      throw new Error('Shop introuvable');
+      throw new Error('Shop not found');
     }
 
     return shop;
@@ -55,7 +55,7 @@ class ShopService {
     const shop = await shopRepository.delete(id);
 
     if (!shop) {
-      throw new Error('Shop introuvable');
+      throw new Error('Shop not found');
     }
 
     return shop;
@@ -64,23 +64,23 @@ class ShopService {
   async assignateOrDesassignateBoxToShop(assignationInformation) {
     const box = await boxRepository.findById(assignationInformation.boxId);
     if (!box) {
-      throw new Error("La box n'est pas trouvee");
+      throw new Error("The box was not found");
     }
 
     const shop = await shopRepository.findById(assignationInformation.shopId);
     if (!shop) {
-      throw new Error("Le shop n'est pas trouve");
+      throw new Error("The shop was not found");
     }
 
     let rent = null;
 
     if (assignationInformation.isAssignate) {
       if (shop.boxId) {
-        throw new Error("Le shop a deja une box assignee");
+        throw new Error("The shop already has an assigned box");
       }
 
       if (!BoxUtils.validateStateChange(box.state, 'RENTED')) {
-        throw new Error('Impossible d\'assigner une box dans cet etat');
+        throw new Error('A rented box cannot be assigned to a shop');
       }
 
       shop.boxId = box._id;
@@ -98,11 +98,11 @@ class ShopService {
 
     } else {
       if (!shop.boxId) {
-        throw new Error("Le shop n'a pas de box assignee");
+        throw new Error("The shop does not have an assigned box");
       }
 
       if (!BoxUtils.validateStateChange(box.state, 'AVAILABLE')) {
-        throw new Error('Impossible de desassigner une box dans cet etat');
+        throw new Error('Impossible to unassign a box in this state');
       }
 
       shop.boxId = null;

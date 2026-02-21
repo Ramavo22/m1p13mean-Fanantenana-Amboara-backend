@@ -10,7 +10,7 @@ class ShopController {
 
       return res.status(200).json({
         success: true,
-        message: `La box "${boxUpdated.label}" a été ${isAssignate ? 'assignée' : 'désassignée'} avec succès`,
+        message: `The box "${boxUpdated.label}" has been ${isAssignate ? 'assigned' : 'unassigned'} successfully`,
       });
     } catch (error) {
       return res.status(400).json({
@@ -23,13 +23,6 @@ class ShopController {
   // POST /api/shops
   async create(req, res) {
     try {
-      if (!req.user || !req.user.sub) {
-        return res.status(401).json({
-          success: false,
-          message: 'Utilisateur non authentifie',
-        });
-      }
-
       const shopPayload = {
         ...req.body,
         ownerUserId: req.user.sub,
@@ -39,7 +32,7 @@ class ShopController {
 
       return res.status(201).json({
         success: true,
-        message: 'Shop créé avec succès',
+        message: 'Shop created successfully',
         data: shop,
       });
     } catch (error) {
@@ -137,7 +130,7 @@ class ShopController {
 
       return res.status(200).json({
         success: true,
-        message: 'Shop mis à jour avec succès',
+        message: 'Shop updated successfully',
         data: shop,
       });
     } catch (error) {
@@ -156,7 +149,7 @@ class ShopController {
 
       return res.status(200).json({
         success: true,
-        message: 'Shop supprimé avec succès',
+        message: 'Shop deleted successfully',
       });
     } catch (error) {
       return res.status(404).json({

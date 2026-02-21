@@ -4,30 +4,30 @@ class ProductTypeService {
 
   async createProductType(data) {
     if (!data._id) {
-      throw new Error('L’identifiant du product type est obligatoire');
+      throw new Error('The product type ID is required');
     }
 
     if (!data.label) {
-      throw new Error('Le label du product type est obligatoire');
+      throw new Error('The product type label is required');
     }
 
     // Validation métier complémentaire
     if (data.attributes?.length) {
       data.attributes.forEach(attr => {
         if (!attr.code || !attr.type) {
-          throw new Error('Chaque attribut doit avoir un code et un type');
+          throw new Error('Each attribute must have a code and a type');
         }
 
         if (attr.type === 'ENUM' && (!attr.values || attr.values.length === 0)) {
-          throw new Error(`L’attribut ${attr.code} doit avoir des values`);
+          throw new Error(`The attribute ${attr.code} must have values`);
         }
 
         if (attr.type === 'NUMBER') {
           if (attr.min === undefined || attr.max === undefined) {
-            throw new Error(`L’attribut ${attr.code} doit avoir min et max`);
+            throw new Error(`The attribute ${attr.code} must have min and max`);
           }
           if (attr.min > attr.max) {
-            throw new Error(`min ne peut pas être supérieur à max pour ${attr.code}`);
+            throw new Error(`min cannot be greater than max for ${attr.code}`);
           }
         }
       });
@@ -44,7 +44,7 @@ class ProductTypeService {
     const productType = await productTypeRepository.findById(id);
 
     if (!productType) {
-      throw new Error('Product type introuvable');
+      throw new Error('Product type not found');
     }
 
     return productType;
@@ -54,7 +54,7 @@ class ProductTypeService {
     const productType = await productTypeRepository.update(id, data);
 
     if (!productType) {
-      throw new Error('Product type introuvable');
+      throw new Error('Product type not found');
     }
 
     return productType;
@@ -64,7 +64,7 @@ class ProductTypeService {
     const productType = await productTypeRepository.delete(id);
 
     if (!productType) {
-      throw new Error('Product type introuvable');
+      throw new Error('Product type not found');
     }
 
     return productType;
