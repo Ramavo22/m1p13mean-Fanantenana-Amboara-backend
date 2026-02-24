@@ -114,6 +114,21 @@ class ShopService {
     const isAssignate = assignationInformation.isAssignate;
     return { boxUpdated, shopUpdated, isAssignate, rent };
   }
+
+  /**
+   * Récupère uniquement l'id et le nom de la boutique d'un utilisateur connecté
+   * @param {string} userId - ID de l'utilisateur (req.user.sub)
+   * @returns {Promise<{_id: string, name: string} | null>}
+   */
+  async getUserShopInfo(userId) {
+    const shop = await shopRepository.findShopByUserId(userId);
+    
+    if (!shop) {
+      throw new Error('No shop found for this user');
+    }
+
+    return shop;
+  }
 }
 
 module.exports = new ShopService();

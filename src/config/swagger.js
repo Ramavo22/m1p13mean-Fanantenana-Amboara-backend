@@ -522,13 +522,8 @@ const options = {
         },
         ProductTypeCreate: {
           type: 'object',
-          required: ['_id', 'label'],
+          required: ['label'],
           properties: {
-            _id: {
-              type: 'string',
-              description: 'ID unique du product type',
-              example: '66b2f0d8cdbd8f1a9d2f1c22',
-            },
             label: {
               type: 'string',
               description: 'Libelle du product type',
@@ -539,6 +534,7 @@ const options = {
               items: { $ref: '#/components/schemas/ProductTypeAttribute' },
             },
           },
+          description: 'L\'ID sera automatiquement généré avec le préfixe PT- (ex: PT-00001)'
         },
         ProductTypeUpdate: {
           type: 'object',

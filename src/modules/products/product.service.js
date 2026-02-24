@@ -1,14 +1,25 @@
 const productRepository = require('./product.repository');
 const ProductUtils = require('./product.utils');
 const shopRepository = require('../shops/shop.repository');
+const { generateProductId } = require('../../utils/utils.generator');
 
 class ProductService {
 
-  async createProduct(data) {
-    if (!data._id) throw new Error('L’identifiant du produit est obligatoire');
+  async createProduct(data, userId) {
+    // Génération automatique et obligatoire de l'ID
+    // On supprime tout _id fourni manuellement
+    delete data._id;
+    data._id = await generateProductId();
+
     if (!data.name) throw new Error('Le nom du produit est obligatoire');
     if (!data.productTypeId) throw new Error('typeProduitId est obligatoire');
-    if (!data.shop) throw new Error('La boutique est obligatoire');
+
+    // Récupération automatique de la boutique de l'utilisateur connecté
+    const shop = await shopRepository.findShopByUserId(userId);
+    if (!shop) {
+      throw new Error('Aucune boutique trouvée pour cet utilisateur');
+    }
+    data.shop = shop;
 
     // Validation des attributs selon ProductType
     await ProductUtils.validateAttributes(data.productTypeId, data.attributes);
@@ -48,10 +59,13 @@ class ProductService {
     return product;
   }
 
-  async getProductsFiltered(filter) {
-    return await productRepository.findFiltered(filter);
+  async getProductsFiltered(filter, page = 1, limit = 10) {
+    return await productRepository.findFiltered(filter, page, limit);
   }
 
+  async getAllProductsPaginated(filter = {}, page = 1, limit = 10) {
+    return await productRepository.findAllPaginated(filter, page, limit);
+  }
 
 }
 
