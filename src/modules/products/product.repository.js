@@ -21,14 +21,14 @@ class ProductRepository {
 
         // Multi-typeProduit
         if (filter.typeProduitIds?.length) {
-            query.typeProduitId = { $in: filter.typeProduitIds };
+            query.productTypeId = { $in: filter.typeProduitIds };
         }
 
         // Prix
         if (filter.priceMin !== undefined || filter.priceMax !== undefined) {
-            query.prix = {};
-            if (filter.priceMin !== undefined) query.prix.$gte = filter.priceMin;
-            if (filter.priceMax !== undefined) query.prix.$lte = filter.priceMax;
+            query.price = {};
+            if (filter.priceMin !== undefined) query.price.$gte = filter.priceMin;
+            if (filter.priceMax !== undefined) query.price.$lte = filter.priceMax;
         }
 
         // Stock

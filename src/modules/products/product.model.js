@@ -71,7 +71,7 @@ const productSchema = new mongoose.Schema(
   }
 );
 
-productSchema.index({ typeProduitId: 1 });
+productSchema.index({ productTypeId: 1 });
 productSchema.index({ 'attributes.BRAND': 1 });
 
 module.exports = mongoose.model('Product', productSchema);
