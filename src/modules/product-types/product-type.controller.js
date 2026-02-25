@@ -95,6 +95,23 @@ class ProductTypeController {
     }
   }
 
+  // GET /api/product-types/select
+  async getForSelect(req, res) {
+    try {
+      const productTypes = await productTypeService.getProductTypesForSelect();
+
+      return res.status(200).json({
+        success: true,
+        data: productTypes,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+
 }
 
 module.exports = new ProductTypeController();

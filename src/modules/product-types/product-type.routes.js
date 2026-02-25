@@ -28,6 +28,40 @@ router.post('/', (req, res) => productTypeController.create(req, res));
 
 /**
  * @swagger
+ * /api/product-types/select:
+ *   get:
+ *     summary: Recuperer les product types pour un select
+ *     tags: [Product Types]
+ *     description: Renvoie une liste simplifiee des product types (id et label uniquement) pour les dropdown/select
+ *     responses:
+ *       200:
+ *         description: Liste simplifiee des product types
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       _id:
+ *                         type: string
+ *                         example: "ORDINATEUR"
+ *                       label:
+ *                         type: string
+ *                         example: "Ordinateur"
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
+ */
+router.get('/select', (req, res) => productTypeController.getForSelect(req, res));
+
+/**
+ * @swagger
  * /api/product-types:
  *   get:
  *     summary: Recuperer tous les product types

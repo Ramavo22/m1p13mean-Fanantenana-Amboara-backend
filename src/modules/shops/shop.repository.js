@@ -195,6 +195,15 @@ class ShopRepository {
     async delete(id){
         return Shop.findByIdAndDelete(id);
     }
+
+    /**
+     * Récupère l'id et le nom de la boutique d'un utilisateur
+     * @param {string} userId - ID de l'utilisateur (depuis req.user.sub)
+     * @returns {Promise<{_id: string, name: string} | null>}
+     */
+    async findShopByUserId(userId){
+        return Shop.findOne({ ownerUserId: userId }).select('_id name').lean();
+    }
 }
 
 module.exports = new ShopRepository();

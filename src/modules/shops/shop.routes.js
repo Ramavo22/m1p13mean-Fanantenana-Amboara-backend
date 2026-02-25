@@ -156,6 +156,53 @@ router.get('/search', authenticateToken, (req, res) => shopController.search(req
 
 /**
  * @swagger
+ * /api/shops/my-shop:
+ *   get:
+ *     summary: Recuperer la boutique de l'utilisateur connecte
+ *     tags: [Shops]
+ *     description: Retourne uniquement l'id et le nom de la boutique appartenant à l'utilisateur authentifie
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Informations de la boutique de l'utilisateur
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                       example: "6583d8f3e4b0a1234567890a"
+ *                     name:
+ *                       type: string
+ *                       example: "Ma Boutique"
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       404:
+ *         description: Aucune boutique trouvee pour cet utilisateur
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "No shop found for this user"
+ */
+router.get('/my-shop', authenticateToken, (req, res) => shopController.getMyShop(req, res));
+
+/**
+ * @swagger
  * /api/shops/{id}:
  *   get:
  *     summary: Recuperer un shop par ID avec details de box assignee

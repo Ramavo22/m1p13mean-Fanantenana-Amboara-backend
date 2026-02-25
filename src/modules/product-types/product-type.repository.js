@@ -2,6 +2,10 @@ const ProductType = require('./product-type.model');
 
 class ProductTypeRepository {
 
+  async findProductTypeForSelect(){
+    return await ProductType.find().select('_id label attributes');
+  }
+
   async create(data) {
     const productType = new ProductType(data);
     return await productType.save();

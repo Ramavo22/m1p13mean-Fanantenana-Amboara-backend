@@ -158,6 +158,25 @@ class ShopController {
       });
     }
   }
+
+  // GET /api/shops/my-shop
+  // Récupère l'id et le nom de la boutique de l'utilisateur connecté
+  async getMyShop(req, res) {
+    try {
+      const userId = req.user.sub; // ID de l'utilisateur depuis le token JWT
+      const shop = await shopService.getUserShopInfo(userId);
+
+      return res.status(200).json({
+        success: true,
+        data: shop,
+      });
+    } catch (error) {
+      return res.status(404).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
 }
 
 module.exports = new ShopController();

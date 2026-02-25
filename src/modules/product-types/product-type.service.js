@@ -1,11 +1,13 @@
 const productTypeRepository = require('./product-type.repository');
+const { generateProductTypeId } = require('../../utils/utils.generator');
 
 class ProductTypeService {
 
   async createProductType(data) {
-    if (!data._id) {
-      throw new Error('The product type ID is required');
-    }
+    // Génération automatique et obligatoire de l'ID
+    // On supprime tout _id fourni manuellement
+    delete data._id;
+    data._id = await generateProductTypeId();
 
     if (!data.label) {
       throw new Error('The product type label is required');
@@ -68,6 +70,10 @@ class ProductTypeService {
     }
 
     return productType;
+  }
+
+  async getProductTypesForSelect() {
+    return await productTypeRepository.findProductTypeForSelect();
   }
 
 }
