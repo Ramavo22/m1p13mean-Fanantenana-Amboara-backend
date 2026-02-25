@@ -176,6 +176,29 @@ class ProductController {
     }
   }
 
+  // POST /api/products/:id/add-stock
+  async addStock(req, res) {
+    try {
+      const { id } = req.params;
+      const { quantity, reason = 'ACHAT' } = req.body;
+
+      if (!quantity || quantity <= 0) {
+        return res.status(400).json({ message: 'Quantité invalide' });
+      }
+
+      const updatedProduct = await productService.addStock(id, quantity, reason);
+      res.status(200).json({
+        success: true,
+        data: updatedProduct
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: error.message
+      });
+    }
+  }
+
 }
 
 module.exports = new ProductController();

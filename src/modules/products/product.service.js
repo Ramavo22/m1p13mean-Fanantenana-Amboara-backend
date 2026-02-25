@@ -2,8 +2,12 @@ const productRepository = require('./product.repository');
 const ProductUtils = require('./product.utils');
 const shopRepository = require('../shops/shop.repository');
 const { generateProductId } = require('../../utils/utils.generator');
+const StockMovement = require('../mvt-stock/stockMovement.model');
+const MvtStockService = require('../mvt-stock/mvtStock.service');
 
 class ProductService {
+
+  
 
   async createProduct(data, userId) {
     // Génération automatique et obligatoire de l'ID
@@ -65,6 +69,31 @@ class ProductService {
 
   async getAllProductsPaginated(filter = {}, page = 1, limit = 10) {
     return await productRepository.findAllPaginated(filter, page, limit);
+  }
+
+  async addStock(productId, quantity, reason = 'ACHAT') {
+    if (quantity <= 0) {
+      throw new Error('La quantité ajoutée doit être supérieure à zéro');
+    }
+
+    const product = await this.getProductById(productId);
+    if (!product) {
+      throw new Error('Produit introuvable');
+    }
+
+    product.stock += quantity;
+    await product.save();
+
+    // Log stock movement using MvtStockService
+    await MvtStockService.createMovement({
+      _id: `STK${Date.now()}`,
+      produitId: productId,
+      qte: quantity,
+      reason,
+      updatedAt: new Date()
+    });
+
+    return product;
   }
 
 }

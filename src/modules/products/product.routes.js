@@ -245,4 +245,7 @@ router.get('/:id', (req, res) => productController.getById(req, res));
 router.put('/:id', (req, res) => productController.update(req, res));
 router.delete('/:id', (req, res) => productController.delete(req, res));
 
+// Route to add stock to a product
+router.post('/:id/add-stock', (req, res) => productController.addStock(req, res));
+
 module.exports = router;
