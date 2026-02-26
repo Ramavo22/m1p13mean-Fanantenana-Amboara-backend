@@ -24,4 +24,8 @@ router.get('/admin', authenticateToken, authorizeRoles('ADMIN'), (req, res) => {
 	dashboardController.getAdminOverview(req, res);
 });
 
+router.get('/admin/net-sales', authenticateToken, authorizeRoles('ADMIN'), (req, res) => {
+    dashboardController.getNetSales(req, res);
+});
+
 module.exports = router;

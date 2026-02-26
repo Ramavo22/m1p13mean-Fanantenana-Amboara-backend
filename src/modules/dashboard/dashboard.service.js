@@ -67,8 +67,11 @@ class DashboardService {
 		};
 	}
 
-	async getNetSales() {
-		const currentYear = new Date().getFullYear();
+	async getNetSales(year) {
+        let currentYear;
+        if (year && !isNaN(year)) currentYear = parseInt(year);
+        else currentYear = new Date().getFullYear();
+
 		const yearPrefix = `${currentYear}-`;
 
 		const [totalResult, byPeriodeRaw] = await Promise.all([
