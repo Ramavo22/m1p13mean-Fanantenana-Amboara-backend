@@ -14,6 +14,7 @@ const productTypeRoutes = require('./src/modules/product-types/product-type.rout
 const productRoutes = require('./src/modules/products/product.routes');
 const transactionRoutes = require('./src/modules/transactions/transaction.routes');
 const rentRoutes = require('./src/modules/rents/rent.routes');  
+const dashboardRoutes = require('./src/modules/dashboard/dashboard.routes');
 
 // Créer l'application Express
 const app = express();
@@ -44,6 +45,7 @@ app.use('/api/product-types',productTypeRoutes);
 app.use('/api/products',productRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/rents', rentRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // Route de base
 app.get('/', (req, res) => {
