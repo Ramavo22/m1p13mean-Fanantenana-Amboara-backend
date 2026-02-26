@@ -25,7 +25,11 @@ router.get('/admin', authenticateToken, authorizeRoles('ADMIN'), (req, res) => {
 });
 
 router.get('/admin/net-sales', authenticateToken, authorizeRoles('ADMIN'), (req, res) => {
-    dashboardController.getNetSales(req, res);
+    dashboardController.getAdminNetSales(req, res);
+});
+
+router.get('/boutique', authenticateToken, authorizeRoles('BOUTIQUE'), (req, res) => {
+    dashboardController.getBoutiqueOverview(req, res);
 });
 
 module.exports = router;
