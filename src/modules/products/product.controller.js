@@ -1,12 +1,17 @@
 const productService = require('./product.service');
+const multer = require('multer');
+const ProductUtils = require('./product.utils');
 
 class ProductController {
 
   // POST /api/products
   async create(req, res) {
     try {
-      const userId = req.user.sub; // ID de l'utilisateur depuis le token JWT
-      const product = await productService.createProduct(req.body, userId);
+      const userId = req.user.sub; 
+      const photoFile = req.file
+      // Parser les données du frontend
+      const productData = ProductUtils.parseProductData(req.body);
+      const product = await productService.createProduct(productData, userId, photoFile);
 
       return res.status(201).json({
         success: true,
@@ -14,6 +19,7 @@ class ProductController {
         data: product
       });
     } catch (error) {
+      console.error('Erreur création produit:', error);
       return res.status(400).json({
         success: false,
         message: error.message
@@ -143,7 +149,12 @@ class ProductController {
   async update(req, res) {
     try {
       const { id } = req.params;
-      const product = await productService.updateProduct(id, req.body);
+      const photoFile = req.file; // Fichier photo depuis multer
+      
+      // Parser les données du frontend
+      const productData = ProductUtils.parseProductData(req.body);
+      
+      const product = await productService.updateProduct(id, productData, photoFile);
 
       return res.status(200).json({
         success: true,
@@ -199,6 +210,55 @@ class ProductController {
     }
   }
 
+  // POST /api/products/:id/photo - Mettre à jour uniquement la photo
+  async updatePhoto(req, res) {
+    try {
+      const { id } = req.params;
+      const photoFile = req.file;
+
+      if (!photoFile) {
+        return res.status(400).json({
+          success: false,
+          message: 'Aucun fichier photo fourni'
+        });
+      }
+
+      const product = await productService.updateProductPhoto(id, photoFile);
+
+      return res.status(200).json({
+        success: true,
+        message: 'Photo du produit mise à jour avec succès',
+        data: product
+      });
+    } catch (error) {
+      return res.status(400).json({
+        success: false,
+        message: error.message
+      });
+    }
+  }
+
+  // DELETE /api/products/:id/photo - Supprimer la photo
+  async removePhoto(req, res) {
+    try {
+      const { id } = req.params;
+      const product = await productService.removeProductPhoto(id);
+
+      return res.status(200).json({
+        success: true,
+        message: 'Photo du produit supprimée avec succès',
+        data: product
+      });
+    } catch (error) {
+      return res.status(400).json({
+        success: false,
+        message: error.message
+      });
+    }
+  }
+
 }
 
-module.exports = new ProductController();
+// Export du contrôleur avec le middleware multer
+const controller = new ProductController();
+module.exports = controller;

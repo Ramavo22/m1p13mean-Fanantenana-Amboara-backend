@@ -1,6 +1,5 @@
 const express = require('express');
 const cors = require('cors');
-const bodyParser = require('body-parser');
 const swaggerUi = require('swagger-ui-express');
 const swaggerDocs = require('./src/config/swagger');
 require('dotenv').config();
@@ -23,8 +22,9 @@ const app = express();
 app.use(cors());
 // Servir les fichiers statiques (pour la page statique /api-docs et swagger.json)
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+// Parser le JSON et les formulaires URL-encoded (pas multipart/form-data, géré par multer)
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Swagger UI configuration
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs, {
@@ -60,6 +60,31 @@ app.use((req, res) => {
   res.status(404).json({
     success: false,
     message: 'Route non trouvée',
+  });
+});
+
+// Gestion des erreurs globales (y compris multer)
+app.use((err, req, res, next) => {
+  console.error('Erreur globale:', err);
+  
+  // Erreur multer
+  if (err.name === 'MulterError') {
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({
+        success: false,
+        message: 'Le fichier est trop volumineux (5MB max)'
+      });
+    }
+    return res.status(400).json({
+      success: false,
+      message: `Erreur d'upload: ${err.message}`
+    });
+  }
+  
+  // Autres erreurs
+  res.status(err.status || 500).json({
+    success: false,
+    message: err.message || 'Erreur serveur interne'
   });
 });
 
