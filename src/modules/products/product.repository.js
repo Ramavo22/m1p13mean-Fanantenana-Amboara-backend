@@ -48,7 +48,6 @@ class ProductRepository {
             Product.find(query).skip(skip).limit(limit),
             Product.countDocuments(query)
         ]);
-
         return {
             data: products,
             pagination: {
@@ -59,6 +58,11 @@ class ProductRepository {
             }
         };
     }
+
+    async findMyProductFiltered(){
+
+    }
+
 
 
     async findById(id) {
@@ -74,6 +78,28 @@ class ProductRepository {
 
     async delete(id) {
         return Product.findByIdAndDelete(id);
+    }
+
+    /**
+     * Décrémente atomiquement le stock d'un produit
+     * @param {string} id - ID du produit
+     * @param {number} qty - Quantité à décrémenter
+     */
+    async decrementStock(id, qty, session = null) {
+        return Product.findByIdAndUpdate(
+            id,
+            { $inc: { stock: -qty } },
+            { new: true, runValidators: true, ...(session ? { session } : {}) }
+        );
+    }
+
+    // Ré-incrémenter le stock (rollback)
+    async incrementStock(id, qty) {
+        return Product.findByIdAndUpdate(
+            id,
+            { $inc: { stock: qty } },
+            { new: true }
+        );
     }
 
     /**

@@ -229,6 +229,9 @@ router.get('/status/:status', authenticateToken, (req, res) => userController.ge
  */
 router.get('/login/:login', authenticateToken, (req, res) => userController.getByLogin(req, res));
 
+// GET /api/users/me — utilisateur connecté
+router.get('/me', authenticateToken, (req, res) => userController.getMe(req, res));
+
 /**
  * @swagger
  * /api/users/{id}:

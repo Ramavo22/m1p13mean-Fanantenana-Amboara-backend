@@ -33,8 +33,17 @@ async function generateProductTypeId() {
   return await generateSequentialId('PT');
 }
 
+/**
+ * Génère un ID pour un panier (PNX-xxxxx)
+ * @returns {Promise<string>}
+ */
+async function generatePanierId() {
+  return await generateSequentialId('PNX');
+}
+
 module.exports = {
   generateSequentialId,
   generateProductId,
-  generateProductTypeId
+  generateProductTypeId,
+  generatePanierId,
 };

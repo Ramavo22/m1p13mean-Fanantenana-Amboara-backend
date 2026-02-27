@@ -1,9 +1,14 @@
 const MvtStock = require('./mvtStock.model');
 
 class MvtStockRepository {
-  async create(data) {
+  async create(data, session = null) {
     const movement = new MvtStock(data);
-    return movement.save();
+    return movement.save(session ? { session } : undefined);
+  }
+
+  // Supprimer un mouvement de stock par ID (rollback)
+  async deleteById(id) {
+    return MvtStock.findByIdAndDelete(id);
   }
 
   async findAll(filter = {}, page = 1, limit = 10) {

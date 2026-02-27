@@ -4,12 +4,11 @@ const shopRepository = require('../shops/shop.repository');
 const { generateProductId } = require('../../utils/utils.generator');
 const StockMovement = require('../mvt-stock/stockMovement.model');
 const MvtStockService = require('../mvt-stock/mvtStock.service');
+const storageService = require('../storage/storage.services');
 
 class ProductService {
 
-  
-
-  async createProduct(data, userId) {
+  async createProduct(data, userId, photoFile = null) {
     // Génération automatique et obligatoire de l'ID
     // On supprime tout _id fourni manuellement
     delete data._id;
@@ -25,6 +24,17 @@ class ProductService {
     }
     data.shop = shop;
 
+    // Gestion de la photo si fournie
+    if (photoFile) {
+      try {
+        const photoData = await storageService.uploadImage(photoFile);
+        data.photoUrl = photoData.publicUrl;
+        data.photoPath = photoData.fileName;
+      } catch (error) {
+        throw new Error(`Erreur lors du traitement de la photo: ${error.message}`);
+      }
+    }
+
     // Validation des attributs selon ProductType
     await ProductUtils.validateAttributes(data.productTypeId, data.attributes);
 
@@ -35,21 +45,55 @@ class ProductService {
     return await productRepository.findAll(filter);
   }
 
+  /**
+   * Récupère les produits de la boutique liée à l'utilisateur connecté
+   * @param {string} userId - ID de l'utilisateur connecté
+   * @param {number} page
+   * @param {number} limit
+   */
+  async getProductsForUserShop(userId, page = 1, limit = 10) {
+    // Récupération automatique de la boutique de l'utilisateur connecté
+    const shop = await shopRepository.findShopByUserId(userId);
+    if (!shop) {
+      throw new Error('Aucune boutique trouvée pour cet utilisateur');
+    }
+
+    // Utiliser le repository existant pour appliquer la pagination et les filtres
+    return await productRepository.findFiltered({ shopIds: [shop._id] }, page, limit);
+  }
+
   async getProductById(id) {
     const product = await productRepository.findById(id);
     if (!product) throw new Error('Produit introuvable');
     return product;
   }
 
-  async updateProduct(id, data) {
+  async updateProduct(id, data, photoFile = null) {
     const existingProduct = await this.getProductById(id);
 
-    const typeProduitId = data.typeProduitId || existingProduct.typeProduitId;
+    const productTypeId = existingProduct.productTypeId;
     const attributes = data.attributes || existingProduct.attributes;
     const boutique = data.boutique || existingProduct.boutique;
 
+    // Gestion de la photo si fournie
+    if (photoFile) {
+      try {
+        // Supprimer l'ancienne photo si elle existe
+        if (existingProduct.photoUrl) {
+          await storageService.deletePhoto(existingProduct.photoPath);
+        }
+        
+        // Enregistrer la nouvelle photo
+        const photoData = await storageService.uploadImage(photoFile);
+        data.photoUrl = photoData.publicUrl;
+        data.photoPath = photoData.fileName;
+      } catch (error) {
+        throw new Error(`Erreur lors du traitement de la photo: ${error.message}`);
+      }
+    }
+
     // Validation attributs
-    await ProductUtils.validateAttributes(typeProduitId, attributes);
+    await ProductUtils.validateAttributes(productTypeId, attributes);
 
     const product = await productRepository.update(id, data);
     if (!product) throw new Error('Produit introuvable');
@@ -58,9 +102,17 @@ class ProductService {
   }
 
   async deleteProduct(id) {
-    const product = await productRepository.delete(id);
-    if (!product) throw new Error('Produit introuvable');
-    return product;
+    const product = await this.getProductById(id);
+    
+    // Supprimer la photo associée si elle existe
+    if (product.photoUrl) {
+      await storageService.deletePhoto(product.photoPath);
+    }
+    
+    const deletedProduct = await productRepository.delete(id);
+    if (!deletedProduct) throw new Error('Produit introuvable');
+    
+    return deletedProduct;
   }
 
   async getProductsFiltered(filter, page = 1, limit = 10) {
@@ -93,6 +145,58 @@ class ProductService {
       updatedAt: new Date()
     });
 
+    return product;
+  }
+
+  /**
+   * Met à jour uniquement la photo d'un produit
+   * @param {string} id - ID du produit
+   * @param {Object} photoFile - Fichier photo
+   * @returns {Object} - Produit mis à jour
+   */
+  async updateProductPhoto(id, photoFile) {
+    const existingProduct = await this.getProductById(id);
+    
+    if (!photoFile) {
+      throw new Error('Aucun fichier photo fourni');
+    }
+
+    try {
+      // Supprimer l'ancienne photo si elle existe
+      if (existingProduct.photoUrl) {
+        await storageService.deletePhoto(existingProduct.photoPath);
+      }
+      
+      // Enregistrer la nouvelle photo
+      const photoData = await storageService.uploadImage(photoFile);
+      const updateData = { photoUrl: photoData.publicUrl,photoPath:photoData.fileName  };
+      
+      const product = await productRepository.update(id, updateData);
+      if (!product) throw new Error('Produit introuvable');
+
+      return product;
+    } catch (error) {
+      throw new Error(`Erreur lors de la mise à jour de la photo: ${error.message}`);
+    }
+  }
+
+  /**
+   * Supprime la photo d'un produit
+   * @param {string} id - ID du produit
+   * @returns {Object} - Produit mis à jour
+   */
+  async removeProductPhoto(id) {
+    const existingProduct = await this.getProductById(id);
+    
+    // Supprimer le fichier photo si il existe
+    if (existingProduct.photoUrl) {
+      await storageService.deletePhoto(existingProduct.photoPath);
+    }
+    
+    const updateData = { photoUrl: null,photoPath: null };
+    const product = await productRepository.update(id, updateData);
+    
+    if (!product) throw new Error('Produit introuvable');
     return product;
   }
 

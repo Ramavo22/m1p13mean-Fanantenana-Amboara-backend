@@ -58,6 +58,23 @@ class UserController {
     }
   }
 
+  // Récupérer l'utilisateur connecté
+  async getMe(req, res) {
+    try {
+      const userId = req.user.sub;
+      const user = await userService.getUserById(userId);
+      return res.status(200).json({
+        success: true,
+        data: user,
+      });
+    } catch (error) {
+      return res.status(404).json({
+        success: false,
+        message: error.message || 'User not found',
+      });
+    }
+  }
+
   // Récupérer un utilisateur par ID
   async getById(req, res) {
     try {
