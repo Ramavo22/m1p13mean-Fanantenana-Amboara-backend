@@ -79,6 +79,29 @@ class UserRepository {
     return !!user;
   }
 
+  // Récupérer un utilisateur par ID dans une session MongoDB
+  async findByIdInSession(userId, session) {
+    return await User.findById(userId).session(session).select('-password');
+  }
+
+  // Décrémenter atomiquement le solde d'un utilisateur
+  async decrementSolde(userId, amount, session = null) {
+    return await User.findByIdAndUpdate(
+      userId,
+      { $inc: { 'profile.solde': -amount } },
+      { new: true, runValidators: true, ...(session ? { session } : {}) }
+    ).select('-password');
+  }
+
+  // Ré-créditer le solde (rollback)
+  async incrementSolde(userId, amount) {
+    return await User.findByIdAndUpdate(
+      userId,
+      { $inc: { 'profile.solde': amount } },
+      { new: true }
+    ).select('-password');
+  }
+
   // Vérifier si un email existe
   async emailExists(email) {
     const user = await User.findOne({ 'profile.email': email });

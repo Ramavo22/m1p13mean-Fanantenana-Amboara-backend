@@ -53,7 +53,7 @@ const productTypeSchema = new mongoose.Schema(
   {
     _id: {
       type: String,
-      required: true
+      required: false
     },
 
     label: {

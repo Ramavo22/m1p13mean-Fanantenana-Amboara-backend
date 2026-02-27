@@ -9,7 +9,7 @@ class ProductTypeController {
 
       return res.status(201).json({
         success: true,
-        message: 'Product type créé avec succès',
+        message: 'Product type created successfully',
         data: productType,
       });
     } catch (error) {
@@ -23,11 +23,14 @@ class ProductTypeController {
   // GET /api/product-types
   async getAll(req, res) {
     try {
-      const productTypes = await productTypeService.getAllProductTypes();
+      const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+      const limit = Math.max(parseInt(req.query.limit, 10) || 10, 1);
+      const result = await productTypeService.getAllProductTypes(page, limit);
 
       return res.status(200).json({
         success: true,
-        data: productTypes,
+        data: result.data,
+        pagination: result.pagination,
       });
     } catch (error) {
       return res.status(500).json({
@@ -63,7 +66,7 @@ class ProductTypeController {
 
       return res.status(200).json({
         success: true,
-        message: 'Product type mis à jour avec succès',
+        message: 'Product type updated successfully',
         data: productType,
       });
     } catch (error) {
@@ -82,10 +85,27 @@ class ProductTypeController {
 
       return res.status(200).json({
         success: true,
-        message: 'Product type supprimé avec succès',
+        message: 'Product type deleted successfully',
       });
     } catch (error) {
       return res.status(404).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+
+  // GET /api/product-types/select
+  async getForSelect(req, res) {
+    try {
+      const productTypes = await productTypeService.getProductTypesForSelect();
+
+      return res.status(200).json({
+        success: true,
+        data: productTypes,
+      });
+    } catch (error) {
+      return res.status(500).json({
         success: false,
         message: error.message,
       });

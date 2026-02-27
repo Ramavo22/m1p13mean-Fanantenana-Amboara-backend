@@ -8,16 +8,16 @@ const boxSchema = new mongoose.Schema(
         },
         state: {
             type: String,
-            enum: ['AVAILABLE','RENTED','REPAIR'],
+            enum: ['AVAILABLE', 'RENTED', 'REPAIR'],
             default: 'AVAILABLE',
         },
         rent: {
             type: Number,
             require: true
-        },
+        }
     },
-    { 
-        timestamps: true 
+    {
+        timestamps: true
     }
 )
 

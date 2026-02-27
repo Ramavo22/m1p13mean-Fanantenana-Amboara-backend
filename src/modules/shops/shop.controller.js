@@ -2,14 +2,37 @@ const shopService = require('./shop.service');
 
 class ShopController {
 
+  // PATCH /api/shops/assignate
+  async assignateBoxToShop(req, res) {
+    try {
+      const assignationData = req.body;
+      const { boxUpdated, isAssignate } = await shopService.assignateOrDesassignateBoxToShop(assignationData);
+
+      return res.status(200).json({
+        success: true,
+        message: `The box "${boxUpdated.label}" has been ${isAssignate ? 'assigned' : 'unassigned'} successfully`,
+      });
+    } catch (error) {
+      return res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+
   // POST /api/shops
   async create(req, res) {
     try {
-      const shop = await shopService.createShop(req.body);
+      const shopPayload = {
+        ...req.body,
+        ownerUserId: req.user.sub,
+      };
+
+      const shop = await shopService.createShop(shopPayload);
 
       return res.status(201).json({
         success: true,
-        message: 'Shop créé avec succès',
+        message: 'Shop created successfully',
         data: shop,
       });
     } catch (error) {
@@ -23,14 +46,41 @@ class ShopController {
   // GET /api/shops
   async getAll(req, res) {
     try {
-      const shops = await shopService.getAllShops();
+      const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+      const limit = Math.max(parseInt(req.query.limit, 10) || 10, 1);
+      const result = await shopService.getAllShops(page, limit);
 
       return res.status(200).json({
         success: true,
-        data: shops,
+        data: result.data,
+        pagination: result.pagination,
       });
     } catch (error) {
       return res.status(500).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+
+  // GET /api/shops/search
+  async search(req, res) {
+    try {
+      const { status, ownerFullName } = req.query;
+      const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+      const limit = Math.max(parseInt(req.query.limit, 10) || 10, 1);
+      const result = await shopService.searchShopsWithOwnerProfile({
+        status,
+        ownerFullName,
+      }, page, limit);
+
+      return res.status(200).json({
+        success: true,
+        data: result.data,
+        pagination: result.pagination,
+      });
+    } catch (error) {
+      return res.status(400).json({
         success: false,
         message: error.message,
       });
@@ -55,6 +105,23 @@ class ShopController {
     }
   }
 
+  // GET /api/shops/owner/:ownerUserId
+  async getByOwnerUserId(req, res) {
+    try {
+      const { ownerUserId } = req.params;
+      const shop = await shopService.getShopByOwnerUserId(ownerUserId);
+      return res.status(200).json({
+        success: true,
+        data: shop,
+      });
+    } catch (error) {
+      return res.status(404).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+
   // PUT /api/shops/:id
   async update(req, res) {
     try {
@@ -63,7 +130,7 @@ class ShopController {
 
       return res.status(200).json({
         success: true,
-        message: 'Shop mis à jour avec succès',
+        message: 'Shop updated successfully',
         data: shop,
       });
     } catch (error) {
@@ -82,7 +149,26 @@ class ShopController {
 
       return res.status(200).json({
         success: true,
-        message: 'Shop supprimé avec succès',
+        message: 'Shop deleted successfully',
+      });
+    } catch (error) {
+      return res.status(404).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+
+  // GET /api/shops/my-shop
+  // Récupère l'id et le nom de la boutique de l'utilisateur connecté
+  async getMyShop(req, res) {
+    try {
+      const userId = req.user.sub; // ID de l'utilisateur depuis le token JWT
+      const shop = await shopService.getUserShopInfo(userId);
+
+      return res.status(200).json({
+        success: true,
+        data: shop,
       });
     } catch (error) {
       return res.status(404).json({

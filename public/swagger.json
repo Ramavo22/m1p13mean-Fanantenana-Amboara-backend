@@ -11,7 +11,7 @@
   },
   "servers": [
     {
-      "url": "http://localhost:3000",
+      "url": "http://localhost:5000",
       "description": "Serveur de developpement"
     }
   ],
@@ -24,6 +24,626 @@
       }
     },
     "schemas": {
+      "Shop": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "description": "ID unique du shop",
+            "example": "66b2f0d8cdbd8f1a9d2f1c44"
+          },
+          "name": {
+            "type": "string",
+            "description": "Nom du shop",
+            "example": "Boutique Centrale"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "INACTIVE"
+            ],
+            "description": "Statut du shop",
+            "example": "ACTIVE"
+          },
+          "ownerUserId": {
+            "type": "string",
+            "description": "ID du proprietaire",
+            "example": "66b2f0d8cdbd8f1a9d2f1c11"
+          },
+          "boxId": {
+            "type": "string",
+            "description": "ID de la box assignee",
+            "nullable": true,
+            "example": "66b2f0d8cdbd8f1a9d2f1c33"
+          },
+          "assignedBox": {
+            "nullable": true,
+            "$ref": "#/components/schemas/Box",
+            "description": "Details de la box assignee au shop"
+          },
+          "activeRent": {
+            "nullable": true,
+            "$ref": "#/components/schemas/Rent",
+            "description": "Location active associee au shop"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Date de creation"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Date de modification"
+          }
+        }
+      },
+      "ShopWithOwner": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "description": "ID unique du shop",
+            "example": "66b2f0d8cdbd8f1a9d2f1c44"
+          },
+          "name": {
+            "type": "string",
+            "description": "Nom du shop",
+            "example": "Boutique Centrale"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "INACTIVE"
+            ],
+            "description": "Statut du shop",
+            "example": "ACTIVE"
+          },
+          "ownerUserId": {
+            "type": "string",
+            "description": "ID du proprietaire",
+            "example": "66b2f0d8cdbd8f1a9d2f1c11"
+          },
+          "ownerUser": {
+            "type": "object",
+            "properties": {
+              "_id": {
+                "type": "string",
+                "description": "ID unique de l'utilisateur"
+              },
+              "profile": {
+                "$ref": "#/components/schemas/UserProfile"
+              }
+            }
+          },
+          "boxId": {
+            "type": "string",
+            "description": "ID de la box assignee",
+            "nullable": true,
+            "example": "66b2f0d8cdbd8f1a9d2f1c33"
+          },
+          "assignedBox": {
+            "nullable": true,
+            "$ref": "#/components/schemas/Box",
+            "description": "Details de la box assignee au shop"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Date de creation"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Date de modification"
+          }
+        }
+      },
+      "ShopCreate": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Nom du shop",
+            "example": "Boutique Centrale"
+          },
+          "ownerUserId": {
+            "type": "string",
+            "description": "ID du proprietaire",
+            "example": "66b2f0d8cdbd8f1a9d2f1c11"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "INACTIVE"
+            ],
+            "description": "Statut du shop",
+            "example": "ACTIVE"
+          }
+        }
+      },
+      "ShopUpdate": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Nom du shop",
+            "example": "Boutique Centrale"
+          },
+          "ownerUserId": {
+            "type": "string",
+            "description": "ID du proprietaire",
+            "example": "66b2f0d8cdbd8f1a9d2f1c11"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "INACTIVE"
+            ],
+            "description": "Statut du shop",
+            "example": "INACTIVE"
+          }
+        }
+      },
+      "Box": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "description": "ID unique de la box",
+            "example": "66b2f0d8cdbd8f1a9d2f1c33"
+          },
+          "label": {
+            "type": "string",
+            "description": "Libelle de la box",
+            "example": "Box A1"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "AVAILABLE",
+              "RENTED",
+              "REPAIR"
+            ],
+            "description": "Etat de la box",
+            "example": "AVAILABLE"
+          },
+          "rent": {
+            "type": "number",
+            "description": "Prix de location",
+            "example": 1500
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Date de creation"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Date de modification"
+          }
+        }
+      },
+      "BoxCreate": {
+        "type": "object",
+        "required": [
+          "label",
+          "rent"
+        ],
+        "properties": {
+          "label": {
+            "type": "string",
+            "description": "Libelle de la box",
+            "example": "Box A1"
+          },
+          "rent": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Prix de location",
+            "example": 1500
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "AVAILABLE",
+              "RENTED",
+              "REPAIR"
+            ],
+            "description": "Etat de la box",
+            "example": "AVAILABLE"
+          }
+        }
+      },
+      "BoxUpdate": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string",
+            "description": "Libelle de la box",
+            "example": "Box A1"
+          },
+          "rent": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Prix de location",
+            "example": 1500
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "AVAILABLE",
+              "RENTED",
+              "REPAIR"
+            ],
+            "description": "Etat de la box",
+            "example": "REPAIR"
+          }
+        }
+      },
+      "BoxStateUpdate": {
+        "type": "object",
+        "required": [
+          "state"
+        ],
+        "properties": {
+          "state": {
+            "type": "string",
+            "enum": [
+              "AVAILABLE",
+              "RENTED",
+              "REPAIR"
+            ],
+            "description": "Nouvel etat de la box",
+            "example": "REPAIR"
+          }
+        }
+      },
+      "BoxAssignate": {
+        "type": "object",
+        "required": [
+          "boxId",
+          "isAssignate"
+        ],
+        "properties": {
+          "rent": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Montant du loyer (obligatoire pour une assignation, ignore pour une desassignation)",
+            "example": 1500
+          },
+          "frequency": {
+            "type": "string",
+            "enum": [
+              "WEEKLY",
+              "MONTHLY",
+              "YEARLY"
+            ],
+            "description": "Frequence de paiement du loyer (obligatoire pour une assignation, ignore pour une desassignation)",
+            "example": "MONTHLY"
+          },
+          "boxId": {
+            "type": "string",
+            "description": "ID de la box",
+            "example": "66b2f0d8cdbd8f1a9d2f1c33"
+          },
+          "shopId": {
+            "type": "string",
+            "description": "ID du shop a assigner",
+            "example": "66b2f0d8cdbd8f1a9d2f1c44"
+          },
+          "isAssignate": {
+            "type": "boolean",
+            "description": "true pour assigner, false pour desassigner",
+            "example": true
+          }
+        }
+      },
+      "Rent": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "description": "ID unique de la location",
+            "example": "66b2f0d8cdbd8f1a9d2f1c55"
+          },
+          "boxId": {
+            "type": "string",
+            "description": "ID de la box louee",
+            "example": "66b2f0d8cdbd8f1a9d2f1c33"
+          },
+          "shopId": {
+            "type": "string",
+            "description": "ID du shop locataire",
+            "example": "66b2f0d8cdbd8f1a9d2f1c44"
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Date de debut de la location"
+          },
+          "nextDeadline": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Prochaine date d echeance"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "EXPIRED",
+              "CANCELLED"
+            ],
+            "description": "Statut de la location",
+            "example": "ACTIVE"
+          },
+          "amount": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Montant du loyer",
+            "example": 1500
+          },
+          "frequency": {
+            "type": "string",
+            "enum": [
+              "WEEKLY",
+              "MONTHLY",
+              "YEARLY"
+            ],
+            "description": "Frequence de paiement",
+            "example": "MONTHLY"
+          }
+        }
+      },
+      "RentCreate": {
+        "type": "object",
+        "required": [
+          "boxId",
+          "shopId",
+          "startDate",
+          "amount",
+          "frequency"
+        ],
+        "properties": {
+          "boxId": {
+            "type": "string",
+            "description": "ID de la box louee",
+            "example": "66b2f0d8cdbd8f1a9d2f1c33"
+          },
+          "shopId": {
+            "type": "string",
+            "description": "ID du shop locataire",
+            "example": "66b2f0d8cdbd8f1a9d2f1c44"
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Date de debut de la location",
+            "example": "2026-02-01T00:00:00.000Z"
+          },
+          "amount": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Montant du loyer",
+            "example": 1500
+          },
+          "frequency": {
+            "type": "string",
+            "enum": [
+              "WEEKLY",
+              "MONTHLY",
+              "YEARLY"
+            ],
+            "description": "Frequence de paiement",
+            "example": "MONTHLY"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "EXPIRED",
+              "CANCELLED"
+            ],
+            "description": "Statut de la location",
+            "example": "ACTIVE"
+          }
+        }
+      },
+      "RentUpdate": {
+        "type": "object",
+        "properties": {
+          "startDate": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Date de debut de la location"
+          },
+          "nextDeadline": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Prochaine date d echeance"
+          },
+          "amount": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Montant du loyer"
+          },
+          "frequency": {
+            "type": "string",
+            "enum": [
+              "WEEKLY",
+              "MONTHLY",
+              "YEARLY"
+            ],
+            "description": "Frequence de paiement"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "EXPIRED",
+              "CANCELLED"
+            ],
+            "description": "Statut de la location"
+          }
+        }
+      },
+      "RentPayRequest": {
+        "type": "object",
+        "required": [
+          "userId"
+        ],
+        "properties": {
+          "userId": {
+            "type": "string",
+            "description": "ID de l'utilisateur qui paie",
+            "example": "66b2f0d8cdbd8f1a9d2f1c11"
+          },
+          "periode": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}$",
+            "description": "Periode du loyer au format YYYY-MM",
+            "example": "2026-02"
+          }
+        }
+      },
+      "RentPaymentResult": {
+        "type": "object",
+        "properties": {
+          "rent": {
+            "$ref": "#/components/schemas/Rent"
+          },
+          "transaction": {
+            "$ref": "#/components/schemas/Transaction"
+          }
+        }
+      },
+      "ProductTypeAttribute": {
+        "type": "object",
+        "required": [
+          "code",
+          "type"
+        ],
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "Code unique de l attribut",
+            "example": "COLOR"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "ENUM",
+              "NUMBER",
+              "STRING",
+              "BOOLEAN",
+              "DATE"
+            ],
+            "description": "Type de l attribut",
+            "example": "ENUM"
+          },
+          "values": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Valeurs possibles pour le type ENUM",
+            "example": [
+              "RED",
+              "GREEN",
+              "BLUE"
+            ]
+          },
+          "min": {
+            "type": "number",
+            "description": "Valeur minimale pour le type NUMBER",
+            "example": 0
+          },
+          "max": {
+            "type": "number",
+            "description": "Valeur maximale pour le type NUMBER",
+            "example": 100
+          }
+        }
+      },
+      "ProductType": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "description": "ID unique du product type",
+            "example": "66b2f0d8cdbd8f1a9d2f1c22"
+          },
+          "label": {
+            "type": "string",
+            "description": "Libelle du product type",
+            "example": "Electromenager"
+          },
+          "attributes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductTypeAttribute"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Date de creation"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Date de modification"
+          }
+        }
+      },
+      "ProductTypeCreate": {
+        "type": "object",
+        "required": [
+          "_id",
+          "label"
+        ],
+        "properties": {
+          "_id": {
+            "type": "string",
+            "description": "ID unique du product type",
+            "example": "66b2f0d8cdbd8f1a9d2f1c22"
+          },
+          "label": {
+            "type": "string",
+            "description": "Libelle du product type",
+            "example": "Electromenager"
+          },
+          "attributes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductTypeAttribute"
+            }
+          }
+        }
+      },
+      "ProductTypeUpdate": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string",
+            "description": "Libelle du product type",
+            "example": "Electromenager"
+          },
+          "attributes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductTypeAttribute"
+            }
+          }
+        }
+      },
       "UserProfile": {
         "type": "object",
         "required": [
@@ -170,6 +790,132 @@
           }
         }
       },
+      "Transaction": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "description": "ID unique de la transaction"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "ACHAT",
+              "RECHARGE",
+              "LOYER"
+            ],
+            "description": "Type de transaction"
+          },
+          "total": {
+            "type": "number",
+            "description": "Montant total de la transaction",
+            "example": 120.5
+          },
+          "date": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Date de la transaction"
+          },
+          "userId": {
+            "type": "string",
+            "description": "ID de l'utilisateur"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Date de creation"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Date de modification"
+          },
+          "rentId": {
+            "type": "string",
+            "nullable": true,
+            "description": "ID de la location liee (present surtout pour les loyers)"
+          },
+          "periode": {
+            "type": "string",
+            "nullable": true,
+            "pattern": "^\\d{4}-\\d{2}$",
+            "description": "Periode de paiement au format YYYY-MM (pour les loyers)",
+            "example": "2026-02"
+          }
+        }
+      },
+      "TransactionCreate": {
+        "type": "object",
+        "required": [
+          "type",
+          "userId"
+        ],
+        "anyOf": [
+          {
+            "required": [
+              "total"
+            ]
+          },
+          {
+            "required": [
+              "amount"
+            ]
+          }
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "ACHAT",
+              "RECHARGE",
+              "LOYER"
+            ],
+            "description": "Type de transaction"
+          },
+          "total": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Montant total de la transaction",
+            "example": 120.5
+          },
+          "amount": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Alias accepte de total",
+            "example": 120.5
+          },
+          "userId": {
+            "type": "string",
+            "description": "ID de l'utilisateur",
+            "example": "66b2f0d8cdbd8f1a9d2f1c11"
+          },
+          "rentId": {
+            "type": "string",
+            "description": "ID de la location (type LOYER)",
+            "example": "66b2f0d8cdbd8f1a9d2f1c55"
+          },
+          "periode": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}$",
+            "description": "Periode de paiement au format YYYY-MM (type LOYER)",
+            "example": "2026-02"
+          }
+        }
+      },
+      "TransactionListPaged": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Transaction"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination"
+          }
+        }
+      },
       "Pagination": {
         "type": "object",
         "properties": {
@@ -205,6 +951,20 @@
           }
         }
       },
+      "ApiResponseTransaction": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/Transaction"
+          }
+        }
+      },
       "ApiResponseUserList": {
         "type": "object",
         "properties": {
@@ -236,6 +996,26 @@
           }
         }
       },
+      "ApiResponseTransactionListPaged": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Transaction"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination"
+          }
+        }
+      },
       "ApiResponseMessage": {
         "type": "object",
         "properties": {
@@ -244,6 +1024,219 @@
           },
           "message": {
             "type": "string"
+          }
+        }
+      },
+      "ApiResponseShop": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/Shop"
+          }
+        }
+      },
+      "ApiResponseShopList": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Shop"
+            }
+          }
+        }
+      },
+      "ApiResponseShopListPaged": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Shop"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination"
+          }
+        }
+      },
+      "ApiResponseShopListWithOwner": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ShopWithOwner"
+            }
+          }
+        }
+      },
+      "ApiResponseShopListWithOwnerPaged": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ShopWithOwner"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination"
+          }
+        }
+      },
+      "ApiResponseShopWithOwner": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ShopWithOwner"
+              }
+            ],
+            "nullable": true
+          }
+        }
+      },
+      "ApiResponseBox": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/Box"
+          }
+        }
+      },
+      "ApiResponseBoxListPaged": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Box"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination"
+          }
+        }
+      },
+      "ApiResponseRent": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/Rent"
+          }
+        }
+      },
+      "ApiResponseRentListPaged": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Rent"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination"
+          }
+        }
+      },
+      "ApiResponseRentPayment": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/RentPaymentResult"
+          }
+        }
+      },
+      "ApiResponseProductType": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/ProductType"
+          }
+        }
+      },
+      "ApiResponseProductTypeList": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductType"
+            }
+          }
+        }
+      },
+      "ApiResponseProductTypeListPaged": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductType"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination"
           }
         }
       },
@@ -276,6 +1269,26 @@
           }
         }
       },
+      "Unauthorized": {
+        "description": "Non authentifie",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "Forbidden": {
+        "description": "Acces refuse",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
       "NotFound": {
         "description": "Ressource non trouvee",
         "content": {
@@ -299,6 +1312,1414 @@
     }
   },
   "paths": {
+    "/api/boxes": {
+      "post": {
+        "summary": "Creer une box",
+        "tags": [
+          "Boxes"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BoxCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Box cree avec succes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseBox"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      },
+      "get": {
+        "summary": "Recuperer toutes les boxes",
+        "tags": [
+          "Boxes"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            },
+            "description": "Numero de page"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            },
+            "description": "Nombre d'elements par page"
+          },
+          {
+            "in": "query",
+            "name": "state",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "AVAILABLE",
+                "RENTED",
+                "REPAIR"
+              ]
+            },
+            "description": "Filtrer par etat"
+          },
+          {
+            "in": "query",
+            "name": "search",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Recherche par libelle"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste des boxes avec pagination",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseBoxListPaged"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/api/boxes/{id}": {
+      "get": {
+        "summary": "Recuperer une box par ID",
+        "tags": [
+          "Boxes"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID unique de la box"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Box trouvee",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseBox"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      },
+      "put": {
+        "summary": "Mettre a jour une box",
+        "tags": [
+          "Boxes"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID unique de la box"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BoxUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Box mise a jour avec succes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseBox"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Supprimer une box",
+        "tags": [
+          "Boxes"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID unique de la box"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Box supprimee avec succes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseMessage"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/api/boxes/{id}/state": {
+      "patch": {
+        "summary": "Changer l'etat d'une box",
+        "tags": [
+          "Boxes"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID unique de la box"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BoxStateUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Etat mis a jour avec succes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseBox"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      }
+    },
+    "/api/product-types": {
+      "post": {
+        "summary": "Creer un product type",
+        "tags": [
+          "Product Types"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductTypeCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Product type cree avec succes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseProductType"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      },
+      "get": {
+        "summary": "Recuperer tous les product types",
+        "tags": [
+          "Product Types"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "example": 1
+            },
+            "description": "Numero de page"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "example": 10
+            },
+            "description": "Nombre d'elements par page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste des product types",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseProductTypeListPaged"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/api/product-types/{id}": {
+      "get": {
+        "summary": "Recuperer un product type par ID",
+        "tags": [
+          "Product Types"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID unique du product type"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Product type trouve",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseProductType"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      },
+      "put": {
+        "summary": "Mettre a jour un product type",
+        "tags": [
+          "Product Types"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID unique du product type"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductTypeUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Product type mis a jour avec succes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseProductType"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Supprimer un product type",
+        "tags": [
+          "Product Types"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID unique du product type"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Product type supprime avec succes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseMessage"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/api/rents": {
+      "post": {
+        "summary": "Creer une location",
+        "tags": [
+          "Rents"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RentCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Location creee avec succes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseRent"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      },
+      "get": {
+        "summary": "Recuperer toutes les locations",
+        "tags": [
+          "Rents"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            },
+            "description": "Numero de page"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            },
+            "description": "Nombre d'elements par page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste paginee des locations",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseRentListPaged"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/api/rents/{id}": {
+      "get": {
+        "summary": "Recuperer une location par ID",
+        "tags": [
+          "Rents"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID de la location"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Location trouvee",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseRent"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Supprimer une location",
+        "tags": [
+          "Rents"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID de la location"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Location supprimee avec succes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseMessage"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "put": {
+        "summary": "Mettre a jour une location",
+        "tags": [
+          "Rents"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID de la location"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RentUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Location mise a jour avec succes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseRent"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
+    "/api/rents/{id}/pay": {
+      "patch": {
+        "summary": "Payer un loyer",
+        "tags": [
+          "Rents"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID de la location"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RentPayRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Loyer paye avec succes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseRentPayment"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
+    "/api/shops": {
+      "post": {
+        "summary": "Creer un shop",
+        "tags": [
+          "Shops"
+        ],
+        "description": "Le ownerUserId est derive du token JWT de l'utilisateur connecte.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "Le champ ownerUserId, s'il est fourni, est ignore et remplace par l'identite du token.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShopCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Shop cree avec succes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseShop"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      },
+      "get": {
+        "summary": "Recuperer tous les shops",
+        "tags": [
+          "Shops"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "example": 1
+            },
+            "description": "Numero de page"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "example": 10
+            },
+            "description": "Nombre d'elements par page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste des shops",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseShopListPaged"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/api/shops/assignate": {
+      "patch": {
+        "summary": "Assigner ou desassigner une box a un shop",
+        "tags": [
+          "Shops"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BoxAssignate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Assignation effectuee avec succes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseMessage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
+    "/api/shops/search": {
+      "get": {
+        "summary": "Rechercher des shops par criteres",
+        "tags": [
+          "Shops"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ACTIVE",
+                "INACTIVE"
+              ]
+            },
+            "description": "Filtre par statut"
+          },
+          {
+            "in": "query",
+            "name": "ownerFullName",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filtre par nom complet du proprietaire (partiel, insensible a la casse)"
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "example": 1
+            },
+            "description": "Numero de page"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "example": 10
+            },
+            "description": "Nombre d'elements par page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste des shops avec le profil du proprietaire",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseShopListWithOwnerPaged"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/shops/{id}": {
+      "get": {
+        "summary": "Recuperer un shop par ID avec details de box assignee",
+        "tags": [
+          "Shops"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID unique du shop"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Shop trouve avec boxId et assignedBox separes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Shop"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      },
+      "put": {
+        "summary": "Mettre a jour un shop",
+        "tags": [
+          "Shops"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID unique du shop"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShopUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Shop mis a jour avec succes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseShop"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Supprimer un shop",
+        "tags": [
+          "Shops"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID unique du shop"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Shop supprime avec succes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseMessage"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/api/shops/owner/{ownerUserId}": {
+      "get": {
+        "summary": "Recuperer un shop par proprietaire",
+        "tags": [
+          "Shops"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ownerUserId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID du proprietaire"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Shop retourne (ou null si aucun) avec box assignee",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseShopWithOwner"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
+    "/api/transactions": {
+      "post": {
+        "summary": "Creer une nouvelle transaction",
+        "tags": [
+          "Transactions"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransactionCreate"
+              },
+              "example": {
+                "type": "ACHAT",
+                "total": 120.5,
+                "userId": "66b2f0d8cdbd8f1a9d2f1c11"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Transaction creee avec succes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseTransaction"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "get": {
+        "summary": "Recuperer toutes les transactions",
+        "tags": [
+          "Transactions"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            },
+            "description": "Numero de page"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            },
+            "description": "Nombre d'elements par page"
+          },
+          {
+            "in": "query",
+            "name": "type",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ACHAT",
+                "RECHARGE",
+                "LOYER"
+              ]
+            },
+            "description": "Filtrer par type de transaction"
+          },
+          {
+            "in": "query",
+            "name": "rentId",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filtrer par ID de location (principalement pour les loyers)"
+          },
+          {
+            "in": "query",
+            "name": "startDate",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "description": "Date de debut (ISO 8601)"
+          },
+          {
+            "in": "query",
+            "name": "endDate",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "description": "Date de fin (ISO 8601)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Transactions recuperees avec succes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseTransactionListPaged"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/api/transactions/user/{userId}": {
+      "get": {
+        "summary": "Recuperer les transactions d'un utilisateur",
+        "tags": [
+          "Transactions"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID de l'utilisateur"
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            },
+            "description": "Numero de page"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            },
+            "description": "Nombre d'elements par page"
+          },
+          {
+            "in": "query",
+            "name": "type",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ACHAT",
+                "RECHARGE",
+                "LOYER"
+              ]
+            },
+            "description": "Filtrer par type de transaction"
+          },
+          {
+            "in": "query",
+            "name": "rentId",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filtrer par ID de location (principalement pour les loyers)"
+          },
+          {
+            "in": "query",
+            "name": "startDate",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "description": "Date de debut (ISO 8601)"
+          },
+          {
+            "in": "query",
+            "name": "endDate",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "description": "Date de fin (ISO 8601)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Transactions recuperees avec succes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseTransactionListPaged"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/api/transactions/{id}": {
+      "get": {
+        "summary": "Recuperer une transaction par ID",
+        "tags": [
+          "Transactions"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID de la transaction"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Transaction recuperee avec succes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseTransaction"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
     "/api/users/login": {
       "post": {
         "summary": "Authentifier un utilisateur",
@@ -799,7 +3220,7 @@
     },
     "/api/users/{id}/solde": {
       "patch": {
-        "summary": "Mettre a jour le solde d'un utilisateur",
+        "summary": "Mettre a jour le solde d'un utilisateur (ACHETEUR uniquement)",
         "tags": [
           "Utilisateurs"
         ],
@@ -826,12 +3247,21 @@
               "schema": {
                 "type": "object",
                 "required": [
-                  "amount"
+                  "amount",
+                  "type"
                 ],
                 "properties": {
                   "amount": {
                     "type": "number",
                     "example": 1500.5
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "ACHAT",
+                      "RECHARGE"
+                    ],
+                    "example": "RECHARGE"
                   }
                 }
               }
@@ -851,6 +3281,9 @@
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
           },
           "404": {
             "$ref": "#/components/responses/NotFound"

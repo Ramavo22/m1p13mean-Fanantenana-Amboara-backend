@@ -1,112 +1,94 @@
 const boxRepository = require('./box.repository');
+const BoxUtils = require('./box.utils');
 
 class BoxService {
 
-  // Créer une box
   async createBox(boxData) {
-
-    // Validation champs obligatoires
     if (!boxData.label) {
-      throw new Error('Le label est obligatoire');
+      throw new Error('The box label is required');
     }
 
-    if (boxData.rent == null || boxData.rent <= 0) {
-      throw new Error('Le prix de location doit être supérieur à 0');
+    if (boxData.rent == null || boxData.rent < 0) {
+      throw new Error('The rent price must be greater than or equal to 0');
     }
 
-    // Validation state
-    const validStates = ['AVAILABLE', 'RENTED', 'REPAIR'];
-    if (boxData.state && !validStates.includes(boxData.state)) {
-      throw new Error('État de box invalide');
+    if (boxData.state && !BoxUtils.validateState(boxData.state)) {
+      throw new Error('Invalid box state');
     }
 
-    // Vérifier unicité de l'ID
     const existingBox = await boxRepository.findById(boxData._id);
     if (existingBox) {
-      throw new Error('Une box avec cet identifiant existe déjà');
+      throw new Error('A box with this ID already exists');
     }
 
     return await boxRepository.create(boxData);
   }
 
-  // Récupérer toutes les box
   async getAllBoxes(params) {
     return await boxRepository.findAll(params);
   }
 
-  // Récupérer une box par ID
   async getBoxById(boxId) {
     const box = await boxRepository.findById(boxId);
     if (!box) {
-      throw new Error('Box non trouvée');
+      throw new Error('Box not found');
     }
     return box;
   }
 
-  // Mettre à jour une box
   async updateBox(boxId, updateData) {
-
     const box = await boxRepository.findById(boxId);
     if (!box) {
-      throw new Error('Box non trouvée');
+      throw new Error('Box not found');
     }
 
-    // Validation state
     if (updateData.state) {
-      const validStates = ['AVAILABLE', 'RENTED', 'REPAIR'];
-      if (!validStates.includes(updateData.state)) {
-        throw new Error('État de box invalide');
+      if (!BoxUtils.validateState(updateData.state)) {
+        throw new Error('Invalid box state');
       }
 
-      // Règle métier exemple
-      if (box.state === 'REPAIR' && updateData.state === 'RENTED') {
-        throw new Error('Une box en réparation ne peut pas être louée');
+      if (!BoxUtils.validateStateChange(box.state, updateData.state)) {
+        throw new Error('Invalid state transition');
       }
     }
 
-    // Validation rent
-    if (updateData.rent != null && updateData.rent <= 0) {
-      throw new Error('Le prix de location doit être supérieur à 0');
+    if (updateData.rent != null && updateData.rent < 0) {
+      throw new Error('The rent price must be greater than or equal to 0');
     }
 
     return await boxRepository.update(boxId, updateData);
   }
 
-  // Supprimer une box
   async deleteBox(boxId) {
-
     const box = await boxRepository.findById(boxId);
     if (!box) {
-      throw new Error('Box non trouvée');
+      throw new Error('Box not found');
     }
 
-    // Optionnel : interdire suppression si louée
     if (box.state === 'RENTED') {
-      throw new Error('Impossible de supprimer une box en cours de location');
+      throw new Error('A rented box cannot be deleted');
     }
 
     return await boxRepository.delete(boxId);
   }
 
-  // Changer l’état d’une box
   async changeBoxState(boxId, newState) {
-
-    const validStates = ['AVAILABLE', 'RENTED', 'REPAIR'];
-    if (!validStates.includes(newState)) {
-      throw new Error('État de box invalide');
+    if (!BoxUtils.validateState(newState)) {
+      throw new Error('Invalid box state');
     }
 
     const box = await boxRepository.findById(boxId);
     if (!box) {
-      throw new Error('Box non trouvée');
+      throw new Error('Box not found');
     }
 
-    if (box.state === 'REPAIR' && newState === 'RENTED') {
-      throw new Error('Une box en réparation ne peut pas être louée');
+    if (!BoxUtils.validateStateChange(box.state, newState)) {
+      throw new Error('Invalid state transition');
     }
 
     return await boxRepository.update(boxId, { state: newState });
   }
+
 }
 
 module.exports = new BoxService();

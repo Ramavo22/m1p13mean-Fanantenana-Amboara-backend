@@ -12,13 +12,13 @@ class UserController {
       
       return res.status(201).json({
         success: true,
-        message: 'Utilisateur créé avec succès',
+        message: 'User created successfully',
         data: user,
       });
     } catch (error) {
       return res.status(400).json({
         success: false,
-        message: error.message || 'Erreur lors de la création de l\'utilisateur',
+        message: error.message || 'Error creating user',
       });
     }
   }
@@ -31,7 +31,7 @@ class UserController {
       if (!login || !password) {
         return res.status(400).json({
           success: false,
-          message: 'Login et mot de passe requis',
+          message: 'Login and password are required',
         });
       }
 
@@ -45,7 +45,7 @@ class UserController {
 
       return res.status(200).json({
         success: true,
-        message: 'Authentification reussie',
+        message: 'Authentication successful',
         token,
         expiresIn: process.env.JWT_EXPIRES_IN || '2h',
         user,
@@ -53,7 +53,24 @@ class UserController {
     } catch (error) {
       return res.status(401).json({
         success: false,
-        message: error.message || 'Identifiants invalides',
+        message: error.message || 'Invalid credentials',
+      });
+    }
+  }
+
+  // Récupérer l'utilisateur connecté
+  async getMe(req, res) {
+    try {
+      const userId = req.user.sub;
+      const user = await userService.getUserById(userId);
+      return res.status(200).json({
+        success: true,
+        data: user,
+      });
+    } catch (error) {
+      return res.status(404).json({
+        success: false,
+        message: error.message || 'User not found',
       });
     }
   }
@@ -71,7 +88,7 @@ class UserController {
     } catch (error) {
       return res.status(404).json({
         success: false,
-        message: error.message || 'Utilisateur non trouvé',
+        message: error.message || 'User not found',
       });
     }
   }
@@ -89,7 +106,7 @@ class UserController {
     } catch (error) {
       return res.status(404).json({
         success: false,
-        message: error.message || 'Utilisateur non trouvé',
+        message: error.message || 'User not found',
       });
     }
   }
@@ -116,7 +133,7 @@ class UserController {
     } catch (error) {
       return res.status(500).json({
         success: false,
-        message: error.message || 'Erreur lors de la récupération des utilisateurs',
+        message: error.message || 'Error retrieving users',
       });
     }
   }
@@ -131,13 +148,13 @@ class UserController {
       
       return res.status(200).json({
         success: true,
-        message: 'Utilisateur mis à jour avec succès',
+        message: 'User updated successfully',
         data: user,
       });
     } catch (error) {
       return res.status(400).json({
         success: false,
-        message: error.message || 'Erreur lors de la mise à jour de l\'utilisateur',
+        message: error.message || 'Error updating user',
       });
     }
   }
@@ -150,12 +167,12 @@ class UserController {
       
       return res.status(200).json({
         success: true,
-        message: 'Utilisateur supprimé avec succès',
+        message: 'User deleted successfully',
       });
     } catch (error) {
       return res.status(404).json({
         success: false,
-        message: error.message || 'Utilisateur non trouvé',
+        message: error.message || 'User not found',
       });
     }
   }
@@ -173,7 +190,7 @@ class UserController {
     } catch (error) {
       return res.status(400).json({
         success: false,
-        message: error.message || 'Erreur lors de la récupération des utilisateurs',
+        message: error.message || 'Error retrieving users by role',
       });
     }
   }
@@ -191,7 +208,7 @@ class UserController {
     } catch (error) {
       return res.status(400).json({
         success: false,
-        message: error.message || 'Erreur lors de la récupération des utilisateurs',
+        message: error.message || 'Error retrieving users by status',
       });
     }
   }
@@ -206,13 +223,13 @@ class UserController {
       
       return res.status(200).json({
         success: true,
-        message: 'Statut mis à jour avec succès',
+        message: 'Status updated successfully',
         data: user,
       });
     } catch (error) {
       return res.status(400).json({
         success: false,
-        message: error.message || 'Erreur lors de la mise à jour du statut',
+        message: error.message || 'Error updating status',
       });
     }
   }
@@ -221,26 +238,19 @@ class UserController {
   async updateSolde(req, res) {
     try {
       const { id } = req.params;
-      const { amount } = req.body;
-      
-      if (typeof amount !== 'number') {
-        return res.status(400).json({
-          success: false,
-          message: 'Le montant doit être un nombre',
-        });
-      }
+      const { amount, type } = req.body;
 
-      const user = await userService.updateUserSolde(id, amount);
+      const user = await userService.updateUserSolde(id, amount, type);
       
       return res.status(200).json({
         success: true,
-        message: 'Solde mis à jour avec succès',
+        message: 'Solde updated successfully',
         data: user,
       });
     } catch (error) {
       return res.status(400).json({
         success: false,
-        message: error.message || 'Erreur lors de la mise à jour du solde',
+        message: error.message || 'Error updating user solde',
       });
     }
   }
