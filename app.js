@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const swaggerUi = require('swagger-ui-express');
 const swaggerDocs = require('./src/config/swagger');
+const connectDB = require('./src/config/database');
 require('dotenv').config();
 const path = require('path');
 
@@ -18,6 +19,8 @@ const panierRoutes = require('./src/modules/panier/panier.routes');
 
 // Créer l'application Express
 const app = express();
+
+connectDB();
 
 // Middleware
 app.use(cors());
