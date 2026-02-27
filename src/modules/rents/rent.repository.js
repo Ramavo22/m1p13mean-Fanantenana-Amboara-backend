@@ -31,6 +31,14 @@ class RentRepository {
         return await Rent.findById(id);
     }
 
+    async findActiveByBoxAndShop(boxId, shopId) {
+        return await Rent.findOne({
+            boxId,
+            shopId,
+            status: 'ACTIVE'
+        });
+    }
+
     async update(id, data) {
         return await Rent.findByIdAndUpdate(id, data, { new: true, runValidators: true });
     }

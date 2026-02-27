@@ -48,6 +48,10 @@ class RentService {
         return rent;
     }
 
+    async getActiveRentByBoxAndShop(boxId, shopId) {
+        return await rentRepository.findActiveByBoxAndShop(boxId, shopId);
+    }
+
     async updateRent(id, data) {
         const allowableStatus= ['ACTIVE', 'EXPIRED', 'CANCELLED'];
 

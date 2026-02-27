@@ -63,7 +63,18 @@ class ShopRepository {
           },
           {
             $addFields: {
-              activeRent: { $arrayElemAt: ["$rent", 0] },
+                activeRent: {
+                    $arrayElemAt: [
+                        {
+                            $filter: {
+                                input: "$rent",
+                                as: "rentItem",
+                                cond: { $eq: ["$$rentItem.status", "ACTIVE"] },
+                            },
+                        },
+                        0,
+                    ],
+                },
             },
           },
           {
@@ -125,7 +136,18 @@ class ShopRepository {
             },
             {
                 $addFields: {
-                    activeRent: { $arrayElemAt: ['$rent', 0] },
+                    activeRent: {
+                        $arrayElemAt: [
+                            {
+                                $filter: {
+                                    input: '$rent',
+                                    as: 'rentItem',
+                                    cond: { $eq: ['$$rentItem.status', 'ACTIVE'] },
+                                },
+                            },
+                            0,
+                        ],
+                    },
                 },
             },
         ];

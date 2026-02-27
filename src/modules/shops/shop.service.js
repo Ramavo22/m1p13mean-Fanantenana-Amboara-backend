@@ -105,8 +105,14 @@ class ShopService {
         throw new Error('Impossible to unassign a box in this state');
       }
 
+      const activeRent = await rentService.getActiveRentByBoxAndShop(box._id, shop._id);
+      if (activeRent) {
+        await rentService.updateRent(activeRent._id, { status: 'CANCELLED' });
+      }
+
       shop.boxId = null;
       box.state = 'AVAILABLE';
+      box.rent = 0;
     }
 
     const shopUpdated = await shopRepository.update(shop._id, shop);
