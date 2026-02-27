@@ -1,0 +1,76 @@
+const supabase = require('../../config/supabase');
+const path = require('path');
+const crypto = require('crypto');
+
+class StorageService {
+
+    constructor() {
+        this.supabase = supabase;
+        this.bucket = process.env.SUPABASE_BUCKET;
+    }
+
+    /**
+     * Upload une image vers Supabase Storage
+     */
+    async uploadImage(file) {
+        if (!file) throw new Error('Aucun fichier fourni');
+        if (!this.validateImageFile(file)) throw new Error('Type de fichier non autorisé');
+
+        const fileExtension = path.extname(file.originalname).toLowerCase();
+        const uniqueName = `photo_${Date.now()}_${crypto.randomUUID()}${fileExtension}`;
+
+        const { data, error } = await this.supabase
+            .storage
+            .from(this.bucket)
+            .upload(uniqueName, file.buffer, {
+                contentType: file.mimetype,
+                upsert: false
+            });
+
+        if (error) throw new Error(`Erreur upload Supabase: ${error.message}`);
+
+        const { data: publicUrlData } = this.supabase
+            .storage
+            .from(this.bucket)
+            .getPublicUrl(uniqueName);
+
+        return {
+            fileName: uniqueName,       // <- utilisé pour deletePhoto
+            publicUrl: publicUrlData.publicUrl
+        };
+    }
+
+    /**
+     * Supprime une image du bucket Supabase
+     * @param {string} fileName - nom du fichier à supprimer
+     */
+    async deletePhoto(fileName) {
+        if (!fileName) throw new Error('Aucun nom de fichier fourni pour suppression');
+
+        const { error } = await this.supabase
+            .storage
+            .from(this.bucket)
+            .remove([fileName]);
+
+        if (error) throw new Error(`Erreur suppression Supabase: ${error.message}`);
+
+        console.log(`Photo supprimée avec succès: ${fileName}`);
+        return true;
+    }
+
+    /**
+     * Vérifie le type de fichier
+     */
+    validateImageFile(file) {
+        const allowedMimeTypes = [
+            'image/jpeg',
+            'image/jpg',
+            'image/png',
+            'image/gif',
+            'image/webp'
+        ];
+        return file && allowedMimeTypes.includes(file.mimetype);
+    }
+}
+
+module.exports = new StorageService();

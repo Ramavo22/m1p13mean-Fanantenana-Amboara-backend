@@ -64,6 +64,17 @@ const productSchema = new mongoose.Schema(
       type: String,
       enum: ['ACTIVE', 'INACTIVE'],
       default: 'ACTIVE'
+    },
+
+    photoUrl: {
+      type: String,
+      required: false,
+      default: null
+    },
+    photoPath: {               // <- nouveau champ
+      type: String,
+      required: false,
+      default: null
     }
   },
   {
