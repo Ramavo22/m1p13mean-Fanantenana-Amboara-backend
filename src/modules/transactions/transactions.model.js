@@ -24,6 +24,11 @@ const transactionSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Rent',
     },
+    panierId: {
+        type: String,
+        ref: 'Panier',
+        default: null,
+    },
     periode: {
         type: String,
     },

@@ -76,6 +76,25 @@ class ProductController {
     }
   }
 
+  // GET /api/products/my-product - produits de la boutique de l'utilisateur connecté
+  async myProducts(req, res) {
+    try {
+      const userId = req.user.sub;
+      const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+      const limit = Math.max(parseInt(req.query.limit, 10) || 10, 1);
+
+      const result = await productService.getProductsForUserShop(userId, page, limit);
+
+      return res.status(200).json({
+        success: true,
+        data: result.data,
+        pagination: result.pagination
+      });
+    } catch (error) {
+      return res.status(500).json({ success: false, message: error.message });
+    }
+  }
+
   // GET /api/products/paginated - Version paginée avec product type et shop en tant que noms
   async getAllPaginated(req, res) {
     try {

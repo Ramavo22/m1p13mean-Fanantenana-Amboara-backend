@@ -263,6 +263,9 @@ router.get('/paginated', (req, res) => productController.getAllPaginated(req, re
  *         $ref: '#/components/responses/InternalServerError'
  */
 router.get('/', (req, res) => productController.getFiltered(req, res));
+// Route pour récupérer les produits de la boutique de l'utilisateur connecté
+router.get('/my-product', authenticateToken, (req, res) => productController.myProducts(req, res));
+
 router.get('/:id', (req, res) => productController.getById(req, res));
 router.put('/:id', authenticateToken, upload.single('photo'), (req, res) => productController.update(req, res));
 router.delete('/:id', (req, res) => productController.delete(req, res));
@@ -443,5 +446,6 @@ router.post('/:id/add-stock', (req, res) => productController.addStock(req, res)
  *       400:
  *         $ref: '#/components/responses/ValidationError'
  */
+
 
 module.exports = router;

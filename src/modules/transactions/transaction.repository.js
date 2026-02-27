@@ -1,15 +1,20 @@
 const Transaction = require('./transactions.model');
 
 class TransactionRepository {
-    // Créer une nouvelle transaction
-    async create(transactionData) {
+    // Créer une nouvelle transaction (session optionnelle pour les opérations transactionnelles)
+    async create(transactionData, session = null) {
         const transaction = new Transaction(transactionData);
-        return await transaction.save();
+        return await transaction.save(session ? { session } : undefined);
     }
 
     // Récupérer une transaction par ID
     async findById(transactionId) {
         return await Transaction.findById(transactionId);
+    }
+
+    // Supprimer une transaction par ID (rollback)
+    async deleteById(transactionId) {
+        return await Transaction.findByIdAndDelete(transactionId);
     }
 
     // Récupérer toutes les transactions filtrées d'un utilisateur

@@ -45,6 +45,23 @@ class ProductService {
     return await productRepository.findAll(filter);
   }
 
+  /**
+   * Récupère les produits de la boutique liée à l'utilisateur connecté
+   * @param {string} userId - ID de l'utilisateur connecté
+   * @param {number} page
+   * @param {number} limit
+   */
+  async getProductsForUserShop(userId, page = 1, limit = 10) {
+    // Récupération automatique de la boutique de l'utilisateur connecté
+    const shop = await shopRepository.findShopByUserId(userId);
+    if (!shop) {
+      throw new Error('Aucune boutique trouvée pour cet utilisateur');
+    }
+
+    // Utiliser le repository existant pour appliquer la pagination et les filtres
+    return await productRepository.findFiltered({ shopIds: [shop._id] }, page, limit);
+  }
+
   async getProductById(id) {
     const product = await productRepository.findById(id);
     if (!product) throw new Error('Produit introuvable');
