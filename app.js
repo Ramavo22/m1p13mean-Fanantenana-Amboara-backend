@@ -23,7 +23,16 @@ const app = express();
 connectDB();
 
 // Middleware
-app.use(cors());
+// Configuration CORS pour autoriser des origines spécifiques
+const corsOptions = {
+  origin: [
+    'http://localhost:4200',
+    'https://m1p13mean-fanantenana-amboara-front.vercel.app'
+  ],
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+app.use(cors(corsOptions));
 // Servir les fichiers statiques (pour la page statique /api-docs et swagger.json)
 app.use(express.static(path.join(__dirname, 'public')));
 // Parser le JSON et les formulaires URL-encoded (pas multipart/form-data, géré par multer)
