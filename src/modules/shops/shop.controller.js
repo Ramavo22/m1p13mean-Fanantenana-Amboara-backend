@@ -1,4 +1,5 @@
 const shopService = require('./shop.service');
+const multer = require('multer');
 
 class ShopController {
 
@@ -23,12 +24,13 @@ class ShopController {
   // POST /api/shops
   async create(req, res) {
     try {
+      const photoFile = req.file;
       const shopPayload = {
         ...req.body,
         ownerUserId: req.user.sub,
       };
 
-      const shop = await shopService.createShop(shopPayload);
+      const shop = await shopService.createShop(shopPayload, photoFile);
 
       return res.status(201).json({
         success: true,
@@ -126,7 +128,8 @@ class ShopController {
   async update(req, res) {
     try {
       const { id } = req.params;
-      const shop = await shopService.updateShop(id, req.body);
+      const photoFile = req.file;
+      const shop = await shopService.updateShop(id, req.body, photoFile);
 
       return res.status(200).json({
         success: true,
@@ -172,6 +175,53 @@ class ShopController {
       });
     } catch (error) {
       return res.status(404).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+
+  // POST /api/shops/:id/photo - Mettre à jour uniquement la photo
+  async updatePhoto(req, res) {
+    try {
+      const { id } = req.params;
+      const photoFile = req.file;
+
+      if (!photoFile) {
+        return res.status(400).json({
+          success: false,
+          message: 'Aucun fichier photo fourni',
+        });
+      }
+
+      const shop = await shopService.updateShopPhoto(id, photoFile);
+
+      return res.status(200).json({
+        success: true,
+        message: 'Photo de la boutique mise à jour avec succès',
+        data: shop,
+      });
+    } catch (error) {
+      return res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+
+  // DELETE /api/shops/:id/photo - Supprimer la photo
+  async removePhoto(req, res) {
+    try {
+      const { id } = req.params;
+      const shop = await shopService.removeShopPhoto(id);
+
+      return res.status(200).json({
+        success: true,
+        message: 'Photo de la boutique supprimée avec succès',
+        data: shop,
+      });
+    } catch (error) {
+      return res.status(400).json({
         success: false,
         message: error.message,
       });
