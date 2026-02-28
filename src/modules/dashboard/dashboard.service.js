@@ -1,110 +1,61 @@
-const Box = require('../boxes/box.model');
-const User = require('../users/users.model');
-const Transaction = require('../transactions/transactions.model');
+const boxRepository = require('../boxes/box.repository');
+const userRepository = require('../users/user.repository');
+const transactionRepository = require('../transactions/transaction.repository');
+const commandRepository = require('../command/command.repository');
+const shopRepository = require('../shops/shop.repository');
 
 class DashboardService {
+
 	async getAdminBoxesSituation() {
 		const boxStates = ['AVAILABLE', 'RENTED'];
 
-		const [totalBoxes, boxesByStateRaw] = await Promise.all([
-			Box.countDocuments(),
-			Box.aggregate([
-				{
-					$group: {
-						_id: '$state',
-						count: { $sum: 1 },
-					},
-				},
-			]),
-		]);
+		const { total, byStateRaw } = await boxRepository.countSituation();
 
-		const boxesByState = boxStates.reduce((accumulator, state) => {
+		const byState = boxStates.reduce((accumulator, state) => {
 			accumulator[state] = 0;
 			return accumulator;
 		}, {});
 
-		for (const item of boxesByStateRaw) {
-			if (item?._id && Object.prototype.hasOwnProperty.call(boxesByState, item._id)) {
-				boxesByState[item._id] = item.count;
+		for (const item of byStateRaw) {
+			if (item?._id && Object.prototype.hasOwnProperty.call(byState, item._id)) {
+				byState[item._id] = item.count;
 			}
 		}
 
 		return {
-			total: totalBoxes,
-			byState: boxesByState,
+			total,
+			byState,
 		};
 	}
 
 	async getAdminUsersSituation() {
 		const userRoles = ['ADMIN', 'BOUTIQUE', 'ACHETEUR'];
 
-		const [totalUsers, usersByRoleRaw] = await Promise.all([
-			User.countDocuments(),
-			User.aggregate([
-				{
-					$group: {
-						_id: '$role',
-						count: { $sum: 1 },
-					},
-				},
-			]),
-		]);
+		const { total, byRoleRaw } = await userRepository.countSituation();
 
-		const usersByRole = userRoles.reduce((accumulator, role) => {
+		const byRole = userRoles.reduce((accumulator, role) => {
 			accumulator[role] = 0;
 			return accumulator;
 		}, {});
 
-		for (const item of usersByRoleRaw) {
-			if (item?._id && Object.prototype.hasOwnProperty.call(usersByRole, item._id)) {
-				usersByRole[item._id] = item.count;
+		for (const item of byRoleRaw) {
+			if (item?._id && Object.prototype.hasOwnProperty.call(byRole, item._id)) {
+				byRole[item._id] = item.count;
 			}
 		}
 
 		return {
-			total: totalUsers,
-			byRole: usersByRole,
+			total,
+			byRole,
 		};
 	}
 
 	async getAdminNetSales(year) {
-        let currentYear;
-        if (year && !isNaN(year)) currentYear = parseInt(year);
-        else currentYear = new Date().getFullYear();
+		let currentYear;
+		if (year && !isNaN(year)) currentYear = parseInt(year);
+		else currentYear = new Date().getFullYear();
 
-		const yearPrefix = `${currentYear}-`;
-
-		const [totalResult, byPeriodeRaw] = await Promise.all([
-			Transaction.aggregate([
-				{
-					$match: {
-						type: 'LOYER',
-						periode: { $regex: `^${yearPrefix}` },
-					},
-				},
-				{
-					$group: {
-						_id: null,
-						total: { $sum: '$total' },
-					},
-				},
-			]),
-			Transaction.aggregate([
-				{
-					$match: {
-						type: 'LOYER',
-						periode: { $regex: `^${yearPrefix}` },
-					},
-				},
-				{
-					$group: {
-						_id: '$periode',
-						total: { $sum: '$total' },
-					},
-				},
-				{ $sort: { _id: 1 } },
-			]),
-		]);
+		const { total, byPeriodeRaw } = await transactionRepository.sumLoyerByYear(currentYear);
 
 		const byPeriode = byPeriodeRaw.reduce((accumulator, item) => {
 			if (item?._id) {
@@ -115,50 +66,22 @@ class DashboardService {
 
 		return {
 			year: currentYear,
-			total: totalResult[0]?.total || 0,
+			total,
 			byPeriode,
 		};
 	}
 
-	async getBoutiqueTotalUsersWithPurchase() {
-		const uniqueBuyers = await Transaction.distinct('userId', {
-			type: 'ACHAT',
-		});
-
-		return {
-			total: uniqueBuyers.length,
-		};
+	async getBoutiqueTotalUsersWithPurchase(boutiqueId) {
+		const total = await commandRepository.getDistinctBuyersByBoutique(boutiqueId);
+		return { total };
 	}
 
-	async getBoutiqueMonthlyCustomers(year) {
+	async getBoutiqueMonthlyCustomers(boutiqueId, year) {
 		let selectedYear;
 		if (year && !isNaN(year)) selectedYear = parseInt(year, 10);
 		else selectedYear = new Date().getFullYear();
 
-		const yearStart = new Date(selectedYear, 0, 1);
-		const nextYearStart = new Date(selectedYear + 1, 0, 1);
-
-		const monthlyRaw = await Transaction.aggregate([
-			{
-				$match: {
-					type: 'ACHAT',
-					date: { $gte: yearStart, $lt: nextYearStart },
-				},
-			},
-			{
-				$group: {
-					_id: { $month: '$date' },
-					users: { $addToSet: '$userId' },
-				},
-			},
-			{
-				$project: {
-					_id: 1,
-					total: { $size: '$users' },
-				},
-			},
-			{ $sort: { _id: 1 } },
-		]);
+		const monthlyRaw = await commandRepository.getMonthlyCustomersByBoutique(boutiqueId, selectedYear);
 
 		const byMonth = {};
 		for (let month = 1; month <= 12; month += 1) {
@@ -179,19 +102,67 @@ class DashboardService {
 		};
 	}
 
-    async getBoutiqueCustomersSituation() {
-        const [totalCustomers, monthlyCustomers] = await Promise.all([
-            this.getBoutiqueTotalUsersWithPurchase(),
-            this.getBoutiqueMonthlyCustomers(),
-        ]);
-        return {
-            total: totalCustomers.total,
-            byMonth: monthlyCustomers.byMonth
-        };
-    }
+	async getBoutiqueCustomersSituation(boutiqueId, year) {
+		const [totalCustomers, monthlyCustomers] = await Promise.all([
+			this.getBoutiqueTotalUsersWithPurchase(boutiqueId),
+			this.getBoutiqueMonthlyCustomers(boutiqueId, year),
+		]);
+		return {
+			total: totalCustomers.total,
+			byMonth: monthlyCustomers.byMonth,
+		};
+	}
+
+	async getBoutiqueNetSales(boutiqueId, year) {
+		let selectedYear;
+		if (year && !isNaN(year)) selectedYear = parseInt(year, 10);
+		else selectedYear = new Date().getFullYear();
+
+		const { total, byMonthRaw } = await commandRepository.sumNetSalesByBoutiqueAndYear(boutiqueId, selectedYear);
+
+		const byMonth = {};
+		for (let month = 1; month <= 12; month += 1) {
+			const monthKey = `${selectedYear}-${String(month).padStart(2, '0')}`;
+			byMonth[monthKey] = 0;
+		}
+
+		for (const item of byMonthRaw) {
+			const monthKey = `${selectedYear}-${String(item._id).padStart(2, '0')}`;
+			if (Object.prototype.hasOwnProperty.call(byMonth, monthKey)) {
+				byMonth[monthKey] = item.total;
+			}
+		}
+
+		return {
+			year: selectedYear,
+			total,
+			byMonth,
+		};
+	}
+
+	async getBoutiqueNetSalesToday(boutiqueId) {
+		return commandRepository.sumNetSalesTodayByBoutique(boutiqueId);
+	}
+
+	async getBoutiqueOverview(userId, year) {
+		const shop = await shopRepository.findByOwnerUserId(userId);
+		if (!shop || shop.length === 0) {
+			throw new Error('Aucune boutique trouvée pour cet utilisateur');
+		}
+
+		const boutiqueId = shop[0]._id.toString();
+		const [customers, netSales] = await Promise.all([
+			this.getBoutiqueCustomersSituation(boutiqueId, year),
+			this.getBoutiqueNetSales(boutiqueId, year),
+		]);
+
+		return {
+			customers,
+			netSales,
+		};
+	}
 
 	async getAdminOverview() {
-
 		const [boxesSituation, usersSituation, netSalesSituation] = await Promise.all([
 			this.getAdminBoxesSituation(),
 			this.getAdminUsersSituation(),
@@ -201,19 +172,9 @@ class DashboardService {
 		return {
 			boxes: boxesSituation,
 			users: usersSituation,
-            netSales: netSalesSituation,
+			netSales: netSalesSituation,
 		};
 	}
-
-
-    async getBoutiqueOverview() {
-        const [customers] = await Promise.all([
-            this.getBoutiqueCustomersSituation(),
-        ]);
-        return {
-            customers,
-        };
-    }
 }
 
 module.exports = new DashboardService();

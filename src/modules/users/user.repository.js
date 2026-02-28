@@ -107,6 +107,21 @@ class UserRepository {
     const user = await User.findOne({ 'profile.email': email });
     return !!user;
   }
+
+  async countSituation() {
+    const [total, byRoleRaw] = await Promise.all([
+      User.countDocuments(),
+      User.aggregate([
+        {
+          $group: {
+            _id: '$role',
+            count: { $sum: 1 },
+          },
+        },
+      ]),
+    ]);
+    return { total, byRoleRaw };
+  }
 }
 
 module.exports = new UserRepository();

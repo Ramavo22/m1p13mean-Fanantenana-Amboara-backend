@@ -5,6 +5,7 @@ const transactionRepository = require('../transactions/transaction.repository');
 const mvtStockRepository = require('../mvt-stock/mvtStock.repository');
 const productRepository = require('../products/product.repository');
 const userRepository = require('../users/user.repository');
+const commandRepository = require('../command/command.repository');
 
 class PanierService {
   /**
@@ -48,30 +49,30 @@ class PanierService {
     }
 
     // --- Processus VALIDATED avec rollback manuel (compatible standalone MongoDB) ---
-    // État de compensation pour annuler les opérations déjà effectuées en cas d'erreur
     let panier = null;
     let soldeDebite = false;
     let transactionCreee = null;
     const mvtsCrees = [];
     const stocksDecrementés = [];
+    const commandsCrees = [];
 
     try {
-      // 1. Vérifications AVANT toute écriture
+      // 1. Vérifications AVANT toute écriture : solde + stock, et collecte des infos produit
       const user = await userRepository.findById(acheteurId);
       if (!user) throw new Error('Utilisateur introuvable');
       if (user.profile.solde < total) {
         throw new Error(`Solde insuffisant (solde: ${user.profile.solde}, total: ${total})`);
       }
 
-      // Vérification du stock pour chaque produit
+      // Récupérer les produits et vérifier les stocks — stocker pour réutilisation
+      const productsMap = {};
       for (const item of items) {
         const product = await productRepository.findById(item.productId);
-        if (!product) {
-          throw new Error(`Produit introuvable : ${item.productId}`);
-        }
+        if (!product) throw new Error(`Produit introuvable : ${item.productId}`);
         if (product.stock < item.qte) {
           throw new Error(`Stock insuffisant pour "${product.name}" (stock disponible: ${product.stock}, quantité demandée: ${item.qte})`);
         }
+        productsMap[item.productId] = product;
       }
 
       // 2. Créer le panier
@@ -79,14 +80,14 @@ class PanierService {
         { _id, acheteurId, items, total, date: new Date(), etat: etatValue }
       );
 
-      // 3. Débiter le solde
-      await userRepository.decrementSolde(acheteurId, total);
-      soldeDebite = true;
-
-      // 4. Créer la transaction ACHAT avec panierId
+      // 3. Créer la transaction ACHAT avec panierId
       transactionCreee = await transactionRepository.create(
         { type: 'ACHAT', total, userId: acheteurId, panierId: _id, date: new Date() }
       );
+
+      // 4. Débiter le solde après la transaction
+      await userRepository.decrementSolde(acheteurId, total);
+      soldeDebite = true;
 
       // 5. Pour chaque article : mouvement VENTE + décrémentation du stock
       for (let i = 0; i < items.length; i++) {
@@ -99,27 +100,62 @@ class PanierService {
         stocksDecrementés.push({ productId: item.productId, qte: item.qte });
       }
 
+      // 6. Grouper les items par boutique et créer une commande par boutique
+      const itemsParBoutique = {};
+      for (const item of items) {
+        const product = productsMap[item.productId];
+        const boutiqueId = product.shop._id;
+        if (!itemsParBoutique[boutiqueId]) {
+          itemsParBoutique[boutiqueId] = {
+            boutique: { _id: product.shop._id, name: product.shop.name },
+            items: [],
+          };
+        }
+        itemsParBoutique[boutiqueId].items.push({
+          produit: {
+            _id: item.productId,
+            name: item.name,
+            price: item.price,
+            qte: item.qte,
+          },
+        });
+      }
+
+      for (const boutiqueId of Object.keys(itemsParBoutique)) {
+        const group = itemsParBoutique[boutiqueId];
+        const cmdId = await generateSequentialId('CMD');
+        const totalAmount = group.items.reduce((sum, i) => sum + i.produit.price * i.produit.qte, 0);
+        const cmd = await commandRepository.create({
+          _id: cmdId,
+          acheteur: { _id: acheteurId, name: user.profile.fullName },
+          boutique: group.boutique,
+          transactionId: transactionCreee._id.toString(),
+          items: group.items,
+          totalAmount,
+          totalItems: group.items.length,
+        });
+        commandsCrees.push(cmd._id);
+      }
+
       return panier;
 
     } catch (err) {
       // --- Rollback dans l'ordre inverse ---
-      // Ré-incrémenter les stocks produits
+      for (const cmdId of commandsCrees) {
+        await commandRepository.deleteById(cmdId).catch(() => {});
+      }
       for (const { productId, qte } of stocksDecrementés.reverse()) {
         await productRepository.incrementStock(productId, qte).catch(() => {});
       }
-      // Supprimer les mouvements de stock créés
       for (const mvtId of mvtsCrees) {
         await mvtStockRepository.deleteById(mvtId).catch(() => {});
       }
-      // Supprimer la transaction ACHAT
       if (transactionCreee) {
         await transactionRepository.deleteById(transactionCreee._id).catch(() => {});
       }
-      // Ré-créditer le solde
       if (soldeDebite) {
         await userRepository.incrementSolde(acheteurId, total).catch(() => {});
       }
-      // Supprimer le panier créé
       if (panier) {
         await panierRepository.delete(_id).catch(() => {});
       }
