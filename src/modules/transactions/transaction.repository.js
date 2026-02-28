@@ -67,6 +67,75 @@ class TransactionRepository {
         };
     }
 
+    async sumLoyerByYear(year) {
+        const yearPrefix = `${year}-`;
+        const [totalResult, byPeriodeRaw] = await Promise.all([
+            Transaction.aggregate([
+                {
+                    $match: {
+                        type: 'LOYER',
+                        periode: { $regex: `^${yearPrefix}` },
+                    },
+                },
+                {
+                    $group: {
+                        _id: null,
+                        total: { $sum: '$total' },
+                    },
+                },
+            ]),
+            Transaction.aggregate([
+                {
+                    $match: {
+                        type: 'LOYER',
+                        periode: { $regex: `^${yearPrefix}` },
+                    },
+                },
+                {
+                    $group: {
+                        _id: '$periode',
+                        total: { $sum: '$total' },
+                    },
+                },
+                { $sort: { _id: 1 } },
+            ]),
+        ]);
+        return {
+            total: totalResult[0]?.total || 0,
+            byPeriodeRaw,
+        };
+    }
+
+    async getDistinctBuyers() {
+        const uniqueBuyers = await Transaction.distinct('userId', { type: 'ACHAT' });
+        return uniqueBuyers.length;
+    }
+
+    async getMonthlyCustomersByYear(year) {
+        const yearStart = new Date(year, 0, 1);
+        const nextYearStart = new Date(year + 1, 0, 1);
+        return Transaction.aggregate([
+            {
+                $match: {
+                    type: 'ACHAT',
+                    date: { $gte: yearStart, $lt: nextYearStart },
+                },
+            },
+            {
+                $group: {
+                    _id: { $month: '$date' },
+                    users: { $addToSet: '$userId' },
+                },
+            },
+            {
+                $project: {
+                    _id: 1,
+                    total: { $size: '$users' },
+                },
+            },
+            { $sort: { _id: 1 } },
+        ]);
+    }
 }
 
 module.exports = new TransactionRepository();

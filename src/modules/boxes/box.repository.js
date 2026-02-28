@@ -38,6 +38,21 @@ class BoxRepository {
   async delete(id) {
     return Box.findByIdAndDelete(id);
   }
+
+  async countSituation() {
+    const [total, byStateRaw] = await Promise.all([
+      Box.countDocuments(),
+      Box.aggregate([
+        {
+          $group: {
+            _id: '$state',
+            count: { $sum: 1 },
+          },
+        },
+      ]),
+    ]);
+    return { total, byStateRaw };
+  }
 }
 
 module.exports = new BoxRepository();
