@@ -1,5 +1,13 @@
 const mongoose = require('mongoose');
 
+const panierItemShopSchema = new mongoose.Schema(
+  {
+    _id: { type: String, required: true, ref: 'Shop' },
+    name: { type: String, required: true },
+  },
+  { _id: false }
+);
+
 const panierItemSchema = new mongoose.Schema(
   {
     productId: {
@@ -20,6 +28,11 @@ const panierItemSchema = new mongoose.Schema(
       type: Number,
       required: true,
       min: 1,
+    },
+    shop: {
+      type: panierItemShopSchema,
+      required: false,
+      default: null,
     },
   },
   { _id: false }

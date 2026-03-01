@@ -2,7 +2,6 @@ const productRepository = require('./product.repository');
 const ProductUtils = require('./product.utils');
 const shopRepository = require('../shops/shop.repository');
 const { generateProductId } = require('../../utils/utils.generator');
-const StockMovement = require('../mvt-stock/stockMovement.model');
 const MvtStockService = require('../mvt-stock/mvtStock.service');
 const storageService = require('../storage/storage.services');
 
@@ -27,7 +26,7 @@ class ProductService {
     // Gestion de la photo si fournie
     if (photoFile) {
       try {
-        const photoData = await storageService.uploadImage(photoFile);
+        const photoData = await storageService.uploadImage(photoFile, storageService.productBucket);
         data.photoUrl = photoData.publicUrl;
         data.photoPath = photoData.fileName;
       } catch (error) {
@@ -80,11 +79,11 @@ class ProductService {
       try {
         // Supprimer l'ancienne photo si elle existe
         if (existingProduct.photoUrl) {
-          await storageService.deletePhoto(existingProduct.photoPath);
+          await storageService.deletePhoto(existingProduct.photoPath, storageService.productBucket);
         }
         
         // Enregistrer la nouvelle photo
-        const photoData = await storageService.uploadImage(photoFile);
+        const photoData = await storageService.uploadImage(photoFile, storageService.productBucket);
         data.photoUrl = photoData.publicUrl;
         data.photoPath = photoData.fileName;
       } catch (error) {
@@ -106,7 +105,7 @@ class ProductService {
     
     // Supprimer la photo associée si elle existe
     if (product.photoUrl) {
-      await storageService.deletePhoto(product.photoPath);
+      await storageService.deletePhoto(product.photoPath, storageService.productBucket);
     }
     
     const deletedProduct = await productRepository.delete(id);
@@ -164,11 +163,11 @@ class ProductService {
     try {
       // Supprimer l'ancienne photo si elle existe
       if (existingProduct.photoUrl) {
-        await storageService.deletePhoto(existingProduct.photoPath);
+        await storageService.deletePhoto(existingProduct.photoPath, storageService.productBucket);
       }
       
       // Enregistrer la nouvelle photo
-      const photoData = await storageService.uploadImage(photoFile);
+      const photoData = await storageService.uploadImage(photoFile, storageService.productBucket);
       const updateData = { photoUrl: photoData.publicUrl,photoPath:photoData.fileName  };
       
       const product = await productRepository.update(id, updateData);
@@ -190,7 +189,7 @@ class ProductService {
     
     // Supprimer le fichier photo si il existe
     if (existingProduct.photoUrl) {
-      await storageService.deletePhoto(existingProduct.photoPath);
+      await storageService.deletePhoto(existingProduct.photoPath, storageService.productBucket);
     }
     
     const updateData = { photoUrl: null,photoPath: null };

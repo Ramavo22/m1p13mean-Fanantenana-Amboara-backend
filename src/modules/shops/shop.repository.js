@@ -63,7 +63,18 @@ class ShopRepository {
           },
           {
             $addFields: {
-              activeRent: { $arrayElemAt: ["$rent", 0] },
+                activeRent: {
+                    $arrayElemAt: [
+                        {
+                            $filter: {
+                                input: "$rent",
+                                as: "rentItem",
+                                cond: { $eq: ["$$rentItem.status", "ACTIVE"] },
+                            },
+                        },
+                        0,
+                    ],
+                },
             },
           },
           {
@@ -75,6 +86,8 @@ class ShopRepository {
               boxId: { $toString: "$boxId" },
               assignedBox: "$assignedBox",
               activeRent: "$activeRent",
+              photoUrl: 1,
+              photoPath: 1,
               createdAt: 1,
               updatedAt: 1,
             },
@@ -125,7 +138,18 @@ class ShopRepository {
             },
             {
                 $addFields: {
-                    activeRent: { $arrayElemAt: ['$rent', 0] },
+                    activeRent: {
+                        $arrayElemAt: [
+                            {
+                                $filter: {
+                                    input: '$rent',
+                                    as: 'rentItem',
+                                    cond: { $eq: ['$$rentItem.status', 'ACTIVE'] },
+                                },
+                            },
+                            0,
+                        ],
+                    },
                 },
             },
         ];
@@ -150,6 +174,8 @@ class ShopRepository {
                     assignedBox: 1,
                     createdAt: 1,
                     updatedAt: 1,
+                    photoUrl: 1,
+                    photoPath: 1,
                     ownerUser: {
                         _id: '$ownerUser._id',
                         profile: '$ownerUser.profile',

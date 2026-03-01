@@ -13,9 +13,11 @@ const shopRoutes = require('./src/modules/shops/shop.routes');
 const productTypeRoutes = require('./src/modules/product-types/product-type.routes');
 const productRoutes = require('./src/modules/products/product.routes');
 const transactionRoutes = require('./src/modules/transactions/transaction.routes');
+const dashboardRoutes = require('./src/modules/dashboard/dashboard.routes');
 const rentRoutes = require('./src/modules/rents/rent.routes');
 const storageRoutes = require('./src/modules/storage/storage.routes');  
 const panierRoutes = require('./src/modules/panier/panier.routes');
+const commandRoutes = require('./src/modules/command/command.routes');
 
 // Créer l'application Express
 const app = express();
@@ -58,8 +60,10 @@ app.use('/api/product-types',productTypeRoutes);
 app.use('/api/products',productRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/rents', rentRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/storage', storageRoutes);
 app.use('/api/paniers', panierRoutes);
+app.use('/api/commands', commandRoutes);
 
 // Route de base
 app.get('/', (req, res) => {

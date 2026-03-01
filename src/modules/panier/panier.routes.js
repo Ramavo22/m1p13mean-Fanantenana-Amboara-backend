@@ -16,6 +16,9 @@ router.get('/my-paniers', authenticateToken, (req, res) => panierController.getM
 // GET /api/paniers/my-pending  — panier PENDING de l'utilisateur connecté
 router.get('/my-pending', authenticateToken, (req, res) => panierController.getMyPendingPanier(req, res));
 
+// GET /api/paniers/transaction/:transactionId — panier lié à une transaction
+router.get('/transaction/:transactionId', authenticateToken, (req, res) => panierController.getByTransactionId(req, res));
+
 // GET /api/paniers
 router.get('/', authenticateToken, (req, res) => panierController.getAll(req, res));
 

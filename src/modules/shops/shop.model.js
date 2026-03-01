@@ -21,6 +21,16 @@ const ShopSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Box',
       required: false
+    },
+    photoUrl: {
+      type: String,
+      required: false,
+      default: null
+    },
+    photoPath: {
+      type: String,
+      required: false,
+      default: null
     }
   },
   { timestamps: true }

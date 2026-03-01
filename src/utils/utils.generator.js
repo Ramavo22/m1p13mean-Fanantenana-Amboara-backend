@@ -41,9 +41,18 @@ async function generatePanierId() {
   return await generateSequentialId('PNX');
 }
 
+/**
+ * Génère un ID pour une commande (CMD-xxxxx)
+ * @returns {Promise<string>}
+ */
+async function generateCommandId() {
+  return await generateSequentialId('CMD');
+}
+
 module.exports = {
   generateSequentialId,
   generateProductId,
   generateProductTypeId,
   generatePanierId,
+  generateCommandId,
 };

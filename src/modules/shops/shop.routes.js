@@ -2,6 +2,24 @@ const express = require('express');
 const router = express.Router();
 const shopController = require('./shop.controller');
 const { authenticateToken , authorizeRoles } = require('../../middleware/auth.middleware');
+const storageService = require('../storage/storage.services');
+const multer = require('multer');
+
+// Configuration multer pour les photos de boutiques
+const storage = multer.memoryStorage();
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB max
+  },
+  fileFilter: (req, file, cb) => {
+    if (storageService.validateImageFile(file)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Seuls les fichiers image sont autorisés (JPEG, PNG, GIF, WEBP)'));
+    }
+  }
+});
 
 /**
  * @swagger
@@ -33,7 +51,11 @@ const { authenticateToken , authorizeRoles } = require('../../middleware/auth.mi
  *       400:
  *         $ref: '#/components/responses/BadRequest'
  */
-router.post('/', authenticateToken, authorizeRoles('BOUTIQUE'), (req, res) => shopController.create(req, res));
+router.post('/', authenticateToken, authorizeRoles('BOUTIQUE'), upload.single('photo'), (req, res) => shopController.create(req, res));
+
+// Routes spécifiques pour les photos
+router.post('/:id/photo', authenticateToken, upload.single('photo'), (req, res) => shopController.updatePhoto(req, res));
+router.delete('/:id/photo', authenticateToken, (req, res) => shopController.removePhoto(req, res));
 
 /**
  * @swagger
@@ -301,7 +323,7 @@ router.get('/owner/:ownerUserId', authenticateToken, (req, res) => shopControlle
  *       404:
  *         $ref: '#/components/responses/NotFound'
  */
-router.put('/:id', authenticateToken, authorizeRoles('ADMIN'), (req, res) => shopController.update(req, res));
+router.put('/:id', authenticateToken, authorizeRoles('ADMIN'), upload.single('photo'), (req, res) => shopController.update(req, res));
 
 /**
  * @swagger
