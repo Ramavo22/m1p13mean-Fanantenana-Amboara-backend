@@ -1,212 +1,547 @@
 /**
- * Seed script — données de test
- * Usage : node scripts/seed.js
+ * MongoDB Seed Script
+ * Generates realistic test data for the e-commerce application.
  *
- * Crée (en remplaçant) :
- *  - 1 ADMIN
- *  - 3 BOUTIQUE (Smartphone, Vêtement, Restauration)
- *  - 6 Boxes
- *  - 3 ProductTypes avec attributs
- *  - 3 Shops liés aux users/boxes
- *  - 10 Products par boutique (30 au total)
+ * Usage: node scripts/seed.js
+ *
+ * Users:      admin1, boutique1, boutique2, user1, user2, user3 (password: 123456)
+ * Boxes:      box1 (80k), box2 (60k), box3 (50k)
+ * Boutique1:  ElectroShop → box1 depuis juillet 2025, loyer payé intégralement
+ * Boutique2:  BeautyStore → box2 depuis janvier 2026, loyer payé uniquement janvier
+ * Achats:     ≥10 articles/mois/utilisateur depuis août 2025
  */
 
-require('dotenv').config();
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
-const connectDB = require('../src/config/database');
+require('dotenv').config();
 
-// ── Modèles ──────────────────────────────────────────────────────────────────
+// ── Models ──────────────────────────────────────────────────────────────────
 const User        = require('../src/modules/users/users.model');
 const Box         = require('../src/modules/boxes/box.model');
-const ProductType = require('../src/modules/product-types/product-type.model');
 const Shop        = require('../src/modules/shops/shop.model');
+const Rent        = require('../src/modules/rents/rent.model');
+const ProductType = require('../src/modules/product-types/product-type.model');
 const Product     = require('../src/modules/products/product.model');
+const Command     = require('../src/modules/command/command.model');
+const Transaction = require('../src/modules/transactions/transactions.model');
+const Panier      = require('../src/modules/panier/panier.model');
+const MvtStock    = require('../src/modules/mvt-stock/mvtStock.model');
 const Counter     = require('../src/models/counter.model');
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-const hash = (pwd) => bcrypt.hash(pwd, 10);
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/users_db';
 
-// ── Main ──────────────────────────────────────────────────────────────────────
-async function seed() {
-  await connectDB();
+// ═══════════════════════════════════════════════════════════════════════════
+// Fixed ObjectIds (24-hex chars) for referential integrity
+// ═══════════════════════════════════════════════════════════════════════════
+const USER_IDS = {
+  admin1:    new mongoose.Types.ObjectId('aaa000000000000000000001'),
+  boutique1: new mongoose.Types.ObjectId('aaa000000000000000000002'),
+  boutique2: new mongoose.Types.ObjectId('aaa000000000000000000003'),
+  user1:     new mongoose.Types.ObjectId('aaa000000000000000000004'),
+  user2:     new mongoose.Types.ObjectId('aaa000000000000000000005'),
+  user3:     new mongoose.Types.ObjectId('aaa000000000000000000006'),
+};
 
-  console.log('\n🗑  Nettoyage des collections...');
-  await Promise.all([
-    User.deleteMany({ login: { $in: ['admin_seed', 'boutique_tech', 'boutique_fashion', 'boutique_resto'] } }),
-    Box.deleteMany({ label: { $regex: /^BOX-SEED/ } }),
-    ProductType.deleteMany({ _id: { $in: ['PT-00001', 'PT-00002', 'PT-00003'] } }),
-  ]);
+const BOX_IDS = {
+  box1: new mongoose.Types.ObjectId('bbb000000000000000000001'),
+  box2: new mongoose.Types.ObjectId('bbb000000000000000000002'),
+  box3: new mongoose.Types.ObjectId('bbb000000000000000000003'),
+};
 
-  // Supprimer les shops/products liés aux labels seed (si re-run)
-  await Shop.deleteMany({ name: { $in: ['TechShop', 'FashionShop', 'BonAppétit'] } });
-  await Product.deleteMany({ _id: { $regex: /^PRD-SEED/ } });
+const SHOP_IDS = {
+  boutique1: new mongoose.Types.ObjectId('ccc000000000000000000001'),
+  boutique2: new mongoose.Types.ObjectId('ccc000000000000000000002'),
+};
 
-  // ── 1. USERS ────────────────────────────────────────────────────────────────
-  console.log('\n👤 Création des utilisateurs...');
-  const [adminUser, techUser, fashionUser, restoUser] = await User.insertMany([
-    {
-      role: 'ADMIN',
-      login: 'admin_seed',
-      password: await hash('Admin1234'),
-      profile: { fullName: 'Super Admin', tel: '0300000000', email: 'admin@seed.mg', solde: 0 },
-      status: 'ACTIVE',
-    },
-    {
-      role: 'BOUTIQUE',
-      login: 'boutique_tech',
-      password: await hash('Password123'),
-      profile: { fullName: 'Jean Rakoto', tel: '0321111111', email: 'tech@seed.mg', solde: 500 },
-      status: 'ACTIVE',
-    },
-    {
-      role: 'BOUTIQUE',
-      login: 'boutique_fashion',
-      password: await hash('Password123'),
-      profile: { fullName: 'Marie Rabe', tel: '0332222222', email: 'fashion@seed.mg', solde: 500 },
-      status: 'ACTIVE',
-    },
-    {
-      role: 'BOUTIQUE',
-      login: 'boutique_resto',
-      password: await hash('Password123'),
-      profile: { fullName: 'Paul Andria', tel: '0343333333', email: 'resto@seed.mg', solde: 500 },
-      status: 'ACTIVE',
-    },
-  ]);
-  console.log(`   ✓ ${[adminUser, techUser, fashionUser, restoUser].length} utilisateurs créés`);
+const RENT_IDS = {
+  rent1: new mongoose.Types.ObjectId('ddd000000000000000000001'),
+  rent2: new mongoose.Types.ObjectId('ddd000000000000000000002'),
+};
 
-  // ── 2. BOXES ─────────────────────────────────────────────────────────────────
-  console.log('\n📦 Création des boxes...');
-  const boxes = await Box.insertMany([
-    { label: 'BOX-SEED-A01', state: 'RENTED',    rent: 150000 },
-    { label: 'BOX-SEED-A02', state: 'RENTED',    rent: 150000 },
-    { label: 'BOX-SEED-A03', state: 'RENTED',    rent: 200000 },
-    { label: 'BOX-SEED-B01', state: 'AVAILABLE', rent: 120000 },
-    { label: 'BOX-SEED-B02', state: 'AVAILABLE', rent: 130000 },
-    { label: 'BOX-SEED-B03', state: 'REPAIR',    rent: 100000 },
-  ]);
-  const [boxTech, boxFashion, boxResto] = boxes;
-  console.log(`   ✓ ${boxes.length} boxes créées`);
+// ── Sequential ID generators ────────────────────────────────────────────────
+let pnxSeq = 0, cmdSeq = 0, mvtSeq = 0;
+const nextPNX = () => `PNX-${String(++pnxSeq).padStart(5, '0')}`;
+const nextCMD = () => `CMD-${String(++cmdSeq).padStart(5, '0')}`;
+const nextMVT = () => `MVT-${String(++mvtSeq).padStart(5, '0')}`;
 
-  // ── 3. PRODUCT TYPES ─────────────────────────────────────────────────────────
-  console.log('\n🏷  Création des types de produits...');
-  const [ptSmartphone, ptVetement, ptRestauration] = await ProductType.insertMany([
-    {
-      _id: 'PT-00001',
-      label: 'Smartphone',
-      attributes: [
-        { code: 'BRAND',   type: 'ENUM',   values: ['Samsung', 'Apple', 'Xiaomi', 'Oppo', 'Tecno'] },
-        { code: 'STORAGE', type: 'ENUM',   values: ['64GB', '128GB', '256GB', '512GB'] },
-        { code: 'RAM',     type: 'ENUM',   values: ['4GB', '6GB', '8GB', '12GB'] },
-        { code: 'COLOR',   type: 'ENUM',   values: ['Noir', 'Blanc', 'Bleu', 'Rouge', 'Vert'] },
-        { code: 'SCREEN',  type: 'NUMBER', min: 4, max: 7 },
-      ],
-    },
-    {
-      _id: 'PT-00002',
-      label: 'Vêtement',
-      attributes: [
-        { code: 'BRAND',    type: 'STRING', values: [] },
-        { code: 'SIZE',     type: 'ENUM',   values: ['XS', 'S', 'M', 'L', 'XL', 'XXL'] },
-        { code: 'COLOR',    type: 'ENUM',   values: ['Noir', 'Blanc', 'Gris', 'Bleu', 'Rouge', 'Vert', 'Jaune'] },
-        { code: 'MATERIAL', type: 'STRING', values: [] },
-        { code: 'GENDER',   type: 'ENUM',   values: ['Homme', 'Femme', 'Unisexe', 'Enfant'] },
-      ],
-    },
-    {
-      _id: 'PT-00003',
-      label: 'Restauration',
-      attributes: [
-        { code: 'CATEGORY',  type: 'ENUM',   values: ['Plat', 'Entrée', 'Dessert', 'Boisson', 'Snack'] },
-        { code: 'ALLERGENES', type: 'STRING', values: [] },
-        { code: 'CALORIES',  type: 'NUMBER', min: 0, max: 5000 },
-        { code: 'VEGETARIEN', type: 'BOOLEAN', values: [] },
-      ],
-    },
-  ]);
-  console.log(`   ✓ 3 types créés (${ptSmartphone._id}, ${ptVetement._id}, ${ptRestauration._id})`);
+// ═══════════════════════════════════════════════════════════════════════════
+// Product catalog
+// ═══════════════════════════════════════════════════════════════════════════
+const ELECTRONICS = [
+  { _id: 'PRD-00001', name: 'Smartphone Samsung Galaxy S23', price: 1500000, attrs: { BRAND: 'Samsung', TYPE: 'Smartphone', CAPACITY: '256GB' } },
+  { _id: 'PRD-00002', name: 'Smartphone iPhone 15',          price: 2000000, attrs: { BRAND: 'Apple', TYPE: 'Smartphone', CAPACITY: '128GB' } },
+  { _id: 'PRD-00003', name: 'Écouteurs Bluetooth JBL',       price: 150000,  attrs: { BRAND: 'JBL', TYPE: 'Écouteurs' } },
+  { _id: 'PRD-00004', name: 'Chargeur USB-C Samsung',        price: 50000,   attrs: { BRAND: 'Samsung', TYPE: 'Chargeur' } },
+  { _id: 'PRD-00005', name: 'Clé USB Kingston 32GB',         price: 30000,   attrs: { BRAND: 'Kingston', TYPE: 'Stockage', CAPACITY: '32GB' } },
+  { _id: 'PRD-00006', name: 'Tablette Samsung Tab A9',       price: 800000,  attrs: { BRAND: 'Samsung', TYPE: 'Tablette' } },
+  { _id: 'PRD-00007', name: 'Montre connectée Xiaomi',       price: 250000,  attrs: { BRAND: 'Xiaomi', TYPE: 'Montre' } },
+  { _id: 'PRD-00008', name: 'Batterie externe Anker',        price: 80000,   attrs: { BRAND: 'Anker', TYPE: 'Batterie' } },
+  { _id: 'PRD-00009', name: 'Câble HDMI 2m',                 price: 25000,   attrs: { BRAND: 'Generic', TYPE: 'Câble' } },
+  { _id: 'PRD-00010', name: 'Souris sans fil Logitech',      price: 60000,   attrs: { BRAND: 'Logitech', TYPE: 'Périphérique' } },
+];
 
-  // Sync counters pour ne pas entrer en conflit avec les IDs séquentiels
-  await Counter.findByIdAndUpdate('PT',  { sequence: 3 }, { upsert: true });
-  await Counter.findByIdAndUpdate('PRD', { sequence: 30 }, { upsert: true });
+const COSMETICS = [
+  { _id: 'PRD-00011', name: 'Crème hydratante Nivea',        price: 15000,  attrs: { BRAND: 'Nivea', TYPE: 'Soin' } },
+  { _id: 'PRD-00012', name: 'Parfum Dior Sauvage 100ml',     price: 350000, attrs: { BRAND: 'Dior', TYPE: 'Parfum' } },
+  { _id: 'PRD-00013', name: 'Rouge à lèvres MAC',            price: 45000,  attrs: { BRAND: 'MAC', TYPE: 'Maquillage' } },
+  { _id: 'PRD-00014', name: 'Fond de teint Maybelline',      price: 30000,  attrs: { BRAND: 'Maybelline', TYPE: 'Maquillage' } },
+  { _id: 'PRD-00015', name: "Shampoing L'Oréal",             price: 12000,  attrs: { BRAND: "L'Oréal", TYPE: 'Cheveux' } },
+  { _id: 'PRD-00016', name: 'Gel douche Dove',               price: 8000,   attrs: { BRAND: 'Dove', TYPE: 'Hygiène' } },
+  { _id: 'PRD-00017', name: 'Déodorant Nivea',               price: 10000,  attrs: { BRAND: 'Nivea', TYPE: 'Hygiène' } },
+  { _id: 'PRD-00018', name: 'Crème solaire La Roche-Posay',  price: 40000,  attrs: { BRAND: 'La Roche-Posay', TYPE: 'Soin' } },
+  { _id: 'PRD-00019', name: 'Sérum visage The Ordinary',     price: 25000,  attrs: { BRAND: 'The Ordinary', TYPE: 'Soin' } },
+  { _id: 'PRD-00020', name: 'Masque capillaire Garnier',     price: 15000,  attrs: { BRAND: 'Garnier', TYPE: 'Cheveux' } },
+];
 
-  // ── 4. SHOPS ─────────────────────────────────────────────────────────────────
-  console.log('\n🏪 Création des boutiques...');
-  const [shopTech, shopFashion, shopResto] = await Shop.insertMany([
-    { name: 'TechShop',    status: 'ACTIVE', ownerUserId: techUser._id,    boxId: boxTech._id },
-    { name: 'FashionShop', status: 'ACTIVE', ownerUserId: fashionUser._id, boxId: boxFashion._id },
-    { name: 'BonAppétit',  status: 'ACTIVE', ownerUserId: restoUser._id,   boxId: boxResto._id },
-  ]);
-  console.log(`   ✓ 3 boutiques créées`);
+// Sub-catalogs for everyday purchases (exclude expensive items)
+const CHEAP_ELEC = ELECTRONICS.filter(p => p.price <= 250000);   // 7 items
+const CHEAP_COSM = COSMETICS.filter(p => p.price <= 100000);     // 9 items
 
-  const shopTechRef    = { _id: shopTech._id.toString(),    name: 'TechShop' };
-  const shopFashionRef = { _id: shopFashion._id.toString(), name: 'FashionShop' };
-  const shopRestoRef   = { _id: shopResto._id.toString(),   name: 'BonAppétit' };
+// ═══════════════════════════════════════════════════════════════════════════
+// Helpers
+// ═══════════════════════════════════════════════════════════════════════════
 
-  // ── 5. PRODUITS ───────────────────────────────────────────────────────────────
-  console.log('\n📱👗🍽  Création des produits...');
+/** Pick `count` distinct products from `catalog` using a deterministic seed */
+function pickProducts(catalog, seed, count) {
+  const n = catalog.length;
+  const start = seed % n;
+  const picked = [];
+  const used = new Set();
 
-  // --- Smartphone (10) ---
-  const smartphoneProducts = [
-    { _id: 'PRD-SEED-001', name: 'Samsung Galaxy A54',     price: 899000,  stock: 15, productTypeId: 'PT-00001', shop: shopTechRef, attributes: { BRAND: 'Samsung', STORAGE: '128GB', RAM: '8GB',  COLOR: 'Noir',  SCREEN: 6.4 } },
-    { _id: 'PRD-SEED-002', name: 'iPhone 14',              price: 2499000, stock: 8,  productTypeId: 'PT-00001', shop: shopTechRef, attributes: { BRAND: 'Apple',   STORAGE: '128GB', RAM: '6GB',  COLOR: 'Blanc', SCREEN: 6.1 } },
-    { _id: 'PRD-SEED-003', name: 'Xiaomi Redmi Note 12',   price: 499000,  stock: 20, productTypeId: 'PT-00001', shop: shopTechRef, attributes: { BRAND: 'Xiaomi',  STORAGE: '128GB', RAM: '6GB',  COLOR: 'Bleu',  SCREEN: 6.67 } },
-    { _id: 'PRD-SEED-004', name: 'Samsung Galaxy S23',     price: 1799000, stock: 5,  productTypeId: 'PT-00001', shop: shopTechRef, attributes: { BRAND: 'Samsung', STORAGE: '256GB', RAM: '8GB',  COLOR: 'Noir',  SCREEN: 6.1 } },
-    { _id: 'PRD-SEED-005', name: 'Oppo Reno 8',            price: 699000,  stock: 12, productTypeId: 'PT-00001', shop: shopTechRef, attributes: { BRAND: 'Oppo',    STORAGE: '128GB', RAM: '8GB',  COLOR: 'Vert',  SCREEN: 6.4 } },
-    { _id: 'PRD-SEED-006', name: 'Tecno Spark 20',         price: 299000,  stock: 30, productTypeId: 'PT-00001', shop: shopTechRef, attributes: { BRAND: 'Tecno',   STORAGE: '128GB', RAM: '4GB',  COLOR: 'Blanc', SCREEN: 6.6 } },
-    { _id: 'PRD-SEED-007', name: 'iPhone 13',              price: 1999000, stock: 6,  productTypeId: 'PT-00001', shop: shopTechRef, attributes: { BRAND: 'Apple',   STORAGE: '256GB', RAM: '6GB',  COLOR: 'Noir',  SCREEN: 6.1 } },
-    { _id: 'PRD-SEED-008', name: 'Xiaomi POCO X5 Pro',     price: 549000,  stock: 18, productTypeId: 'PT-00001', shop: shopTechRef, attributes: { BRAND: 'Xiaomi',  STORAGE: '256GB', RAM: '8GB',  COLOR: 'Noir',  SCREEN: 6.67 } },
-    { _id: 'PRD-SEED-009', name: 'Samsung Galaxy A14',     price: 349000,  stock: 25, productTypeId: 'PT-00001', shop: shopTechRef, attributes: { BRAND: 'Samsung', STORAGE: '64GB',  RAM: '4GB',  COLOR: 'Bleu',  SCREEN: 6.6 } },
-    { _id: 'PRD-SEED-010', name: 'Oppo A78',               price: 449000,  stock: 14, productTypeId: 'PT-00001', shop: shopTechRef, attributes: { BRAND: 'Oppo',    STORAGE: '128GB', RAM: '4GB',  COLOR: 'Rouge', SCREEN: 6.43 } },
-  ];
+  for (let i = 0; i < count && i < n; i++) {
+    let idx = (start + i) % n;
+    while (used.has(idx)) idx = (idx + 1) % n;
+    used.add(idx);
 
-  // --- Vêtement (10) ---
-  const vetementProducts = [
-    { _id: 'PRD-SEED-011', name: 'T-Shirt Nike Homme',       price: 85000,  stock: 50, productTypeId: 'PT-00002', shop: shopFashionRef, attributes: { BRAND: 'Nike',    SIZE: 'M',   COLOR: 'Blanc',  MATERIAL: 'Coton',    GENDER: 'Homme' } },
-    { _id: 'PRD-SEED-012', name: 'Jean Slim Femme',           price: 120000, stock: 35, productTypeId: 'PT-00002', shop: shopFashionRef, attributes: { BRAND: 'Zara',    SIZE: 'S',   COLOR: 'Bleu',   MATERIAL: 'Denim',    GENDER: 'Femme' } },
-    { _id: 'PRD-SEED-013', name: 'Hoodie Adidas Unisexe',     price: 145000, stock: 28, productTypeId: 'PT-00002', shop: shopFashionRef, attributes: { BRAND: 'Adidas',  SIZE: 'L',   COLOR: 'Noir',   MATERIAL: 'Polyester', GENDER: 'Unisexe' } },
-    { _id: 'PRD-SEED-014', name: 'Robe d\'été Femme',         price: 95000,  stock: 40, productTypeId: 'PT-00002', shop: shopFashionRef, attributes: { BRAND: 'H&M',    SIZE: 'M',   COLOR: 'Rouge',  MATERIAL: 'Lin',      GENDER: 'Femme' } },
-    { _id: 'PRD-SEED-015', name: 'Veste en Cuir Homme',       price: 280000, stock: 10, productTypeId: 'PT-00002', shop: shopFashionRef, attributes: { BRAND: 'Zara',    SIZE: 'XL',  COLOR: 'Noir',   MATERIAL: 'Cuir',     GENDER: 'Homme' } },
-    { _id: 'PRD-SEED-016', name: 'Polo Lacoste Homme',        price: 175000, stock: 22, productTypeId: 'PT-00002', shop: shopFashionRef, attributes: { BRAND: 'Lacoste', SIZE: 'L',   COLOR: 'Blanc',  MATERIAL: 'Coton',    GENDER: 'Homme' } },
-    { _id: 'PRD-SEED-017', name: 'Legging Sport Femme',       price: 65000,  stock: 60, productTypeId: 'PT-00002', shop: shopFashionRef, attributes: { BRAND: 'Nike',    SIZE: 'S',   COLOR: 'Noir',   MATERIAL: 'Elasthane', GENDER: 'Femme' } },
-    { _id: 'PRD-SEED-018', name: 'Short Bermuda Homme',       price: 75000,  stock: 45, productTypeId: 'PT-00002', shop: shopFashionRef, attributes: { BRAND: 'H&M',    SIZE: 'M',   COLOR: 'Gris',   MATERIAL: 'Coton',    GENDER: 'Homme' } },
-    { _id: 'PRD-SEED-019', name: 'Manteau Hiver Femme',       price: 320000, stock: 8,  productTypeId: 'PT-00002', shop: shopFashionRef, attributes: { BRAND: 'Zara',    SIZE: 'XS',  COLOR: 'Gris',   MATERIAL: 'Laine',    GENDER: 'Femme' } },
-    { _id: 'PRD-SEED-020', name: 'Ensemble Jogging Enfant',   price: 55000,  stock: 70, productTypeId: 'PT-00002', shop: shopFashionRef, attributes: { BRAND: 'Adidas',  SIZE: 'S',   COLOR: 'Bleu',   MATERIAL: 'Coton',    GENDER: 'Enfant' } },
-  ];
-
-  // --- Restauration (10) ---
-  const restoProducts = [
-    { _id: 'PRD-SEED-021', name: 'Romazava',             price: 12000, stock: 100, productTypeId: 'PT-00003', shop: shopRestoRef, attributes: { CATEGORY: 'Plat',     ALLERGENES: 'Viande',       CALORIES: 450, VEGETARIEN: false } },
-    { _id: 'PRD-SEED-022', name: 'Ravitoto sy Henakisoa', price: 14000, stock: 80,  productTypeId: 'PT-00003', shop: shopRestoRef, attributes: { CATEGORY: 'Plat',     ALLERGENES: 'Porc',         CALORIES: 520, VEGETARIEN: false } },
-    { _id: 'PRD-SEED-023', name: 'Mofo Gasy',            price: 3000,  stock: 200, productTypeId: 'PT-00003', shop: shopRestoRef, attributes: { CATEGORY: 'Snack',    ALLERGENES: 'Gluten',       CALORIES: 180, VEGETARIEN: true  } },
-    { _id: 'PRD-SEED-024', name: 'Lasopy Legumes',       price: 8000,  stock: 60,  productTypeId: 'PT-00003', shop: shopRestoRef, attributes: { CATEGORY: 'Entrée',   ALLERGENES: 'Aucun',        CALORIES: 90,  VEGETARIEN: true  } },
-    { _id: 'PRD-SEED-025', name: 'Riz Cantonnais',       price: 15000, stock: 90,  productTypeId: 'PT-00003', shop: shopRestoRef, attributes: { CATEGORY: 'Plat',     ALLERGENES: 'Oeuf/Soja',    CALORIES: 480, VEGETARIEN: false } },
-    { _id: 'PRD-SEED-026', name: 'Jus de Corossol',      price: 5000,  stock: 150, productTypeId: 'PT-00003', shop: shopRestoRef, attributes: { CATEGORY: 'Boisson',  ALLERGENES: 'Aucun',        CALORIES: 95,  VEGETARIEN: true  } },
-    { _id: 'PRD-SEED-027', name: 'Poulet Rôti',          price: 18000, stock: 40,  productTypeId: 'PT-00003', shop: shopRestoRef, attributes: { CATEGORY: 'Plat',     ALLERGENES: 'Volaille',     CALORIES: 600, VEGETARIEN: false } },
-    { _id: 'PRD-SEED-028', name: 'Salade de Fruits',     price: 7000,  stock: 120, productTypeId: 'PT-00003', shop: shopRestoRef, attributes: { CATEGORY: 'Dessert',  ALLERGENES: 'Aucun',        CALORIES: 130, VEGETARIEN: true  } },
-    { _id: 'PRD-SEED-029', name: 'Brochette Zébu',       price: 11000, stock: 55,  productTypeId: 'PT-00003', shop: shopRestoRef, attributes: { CATEGORY: 'Plat',     ALLERGENES: 'Viande rouge', CALORIES: 380, VEGETARIEN: false } },
-    { _id: 'PRD-SEED-030', name: 'Café Malagasy',        price: 4000,  stock: 300, productTypeId: 'PT-00003', shop: shopRestoRef, attributes: { CATEGORY: 'Boisson',  ALLERGENES: 'Caféine',      CALORIES: 25,  VEGETARIEN: true  } },
-  ];
-
-  await Product.insertMany([...smartphoneProducts, ...vetementProducts, ...restoProducts]);
-  console.log(`   ✓ 30 produits créés (10 par boutique)`);
-
-  // ── Résumé ────────────────────────────────────────────────────────────────────
-  console.log('\n✅ Seed terminé avec succès !\n');
-  console.log('Comptes créés :');
-  console.log('  ADMIN     → login: admin_seed      / password: Admin1234');
-  console.log('  BOUTIQUE  → login: boutique_tech   / password: Password123  (TechShop)');
-  console.log('  BOUTIQUE  → login: boutique_fashion / password: Password123 (FashionShop)');
-  console.log('  BOUTIQUE  → login: boutique_resto  / password: Password123  (BonAppétit)');
-  console.log('\nIDs ProductTypes : PT-00001 (Smartphone), PT-00002 (Vêtement), PT-00003 (Restauration)');
-  console.log('IDs Produits     : PRD-SEED-001 → PRD-SEED-030\n');
-
-  await mongoose.disconnect();
+    const p = catalog[idx];
+    // ~20 % chance of qte=2, only for cheaper items
+    const qte = ((seed + i) % 5 === 0 && p.price < 200000) ? 2 : 1;
+    picked.push({ product: p, qte });
+  }
+  return picked;
 }
 
-seed().catch((err) => {
-  console.error('\n❌ Erreur seed :', err.message);
+// ═══════════════════════════════════════════════════════════════════════════
+// MAIN SEED FUNCTION
+// ═══════════════════════════════════════════════════════════════════════════
+async function seed() {
+  await mongoose.connect(MONGODB_URI);
+  console.log('✓ Connecté à MongoDB:', MONGODB_URI);
+
+  // ── Drop all collections ──────────────────────────────────────────────
+  const colls = [
+    'users', 'boxes', 'shops', 'rents', 'producttypes', 'products',
+    'commands', 'transactions', 'paniers', 'mvtstocks', 'counters',
+  ];
+  for (const c of colls) {
+    try { await mongoose.connection.db.dropCollection(c); } catch (_) {}
+  }
+  console.log('✓ Collections supprimées');
+
+  // ── Hash password ─────────────────────────────────────────────────────
+  const hash = await bcrypt.hash('123456', 10);
+  console.log('✓ Mot de passe hashé (bcrypt)');
+
+  // ═══════════ BOXES ═══════════════════════════════════════════════════
+  await Box.insertMany([
+    {
+      _id: BOX_IDS.box1, label: 'Box 1', state: 'RENTED', rent: 80000,
+      createdAt: new Date('2025-06-01'), updatedAt: new Date('2025-07-01'),
+    },
+    {
+      _id: BOX_IDS.box2, label: 'Box 2', state: 'RENTED', rent: 60000,
+      createdAt: new Date('2025-06-01'), updatedAt: new Date('2026-01-01'),
+    },
+    {
+      _id: BOX_IDS.box3, label: 'Box 3', state: 'AVAILABLE', rent: 50000,
+      createdAt: new Date('2025-06-01'), updatedAt: new Date('2025-06-01'),
+    },
+  ]);
+  console.log('✓ 3 boxes');
+
+  // ═══════════ SHOPS ══════════════════════════════════════════════════
+  await Shop.insertMany([
+    {
+      _id: SHOP_IDS.boutique1, name: 'ElectroShop', status: 'ACTIVE',
+      ownerUserId: USER_IDS.boutique1, boxId: BOX_IDS.box1,
+      createdAt: new Date('2025-07-01'), updatedAt: new Date('2025-07-01'),
+    },
+    {
+      _id: SHOP_IDS.boutique2, name: 'BeautyStore', status: 'ACTIVE',
+      ownerUserId: USER_IDS.boutique2, boxId: BOX_IDS.box2,
+      createdAt: new Date('2026-01-01'), updatedAt: new Date('2026-01-01'),
+    },
+  ]);
+  console.log('✓ 2 boutiques');
+
+  // ═══════════ PRODUCT TYPES ══════════════════════════════════════════
+  await ProductType.insertMany([
+    {
+      _id: 'PT-00001', label: 'Électronique',
+      attributes: [
+        { code: 'BRAND', type: 'ENUM', values: ['Samsung', 'Apple', 'JBL', 'Kingston', 'Xiaomi', 'Anker', 'Generic', 'Logitech'] },
+        { code: 'TYPE', type: 'ENUM', values: ['Smartphone', 'Écouteurs', 'Chargeur', 'Stockage', 'Tablette', 'Montre', 'Batterie', 'Câble', 'Périphérique'] },
+        { code: 'CAPACITY', type: 'ENUM', values: ['32GB', '64GB', '128GB', '256GB', '512GB'] },
+      ],
+      createdAt: new Date('2025-07-01'), updatedAt: new Date('2025-07-01'),
+    },
+    {
+      _id: 'PT-00002', label: 'Cosmétique',
+      attributes: [
+        { code: 'BRAND', type: 'ENUM', values: ['Nivea', 'Dior', 'MAC', 'Maybelline', "L'Oréal", 'Dove', 'La Roche-Posay', 'The Ordinary', 'Garnier'] },
+        { code: 'TYPE', type: 'ENUM', values: ['Soin', 'Parfum', 'Maquillage', 'Cheveux', 'Hygiène'] },
+      ],
+      createdAt: new Date('2025-07-01'), updatedAt: new Date('2025-07-01'),
+    },
+  ]);
+  console.log('✓ 2 types de produits');
+
+  // ═══════════ PRODUCTS ═══════════════════════════════════════════════
+  const stockTracker = {}; // productId → total sold
+  const productDocs = [];
+
+  for (const p of ELECTRONICS) {
+    stockTracker[p._id] = 0;
+    productDocs.push({
+      _id: p._id, name: p.name, price: p.price,
+      productTypeId: 'PT-00001',
+      shop: { _id: SHOP_IDS.boutique1.toString(), name: 'ElectroShop' },
+      attributes: p.attrs, stock: 100,
+      promotion: { active: false }, status: 'ACTIVE',
+      photoUrl: null, photoPath: null,
+      createdAt: new Date('2025-07-01'), updatedAt: new Date('2025-07-01'),
+    });
+  }
+  for (const p of COSMETICS) {
+    stockTracker[p._id] = 0;
+    productDocs.push({
+      _id: p._id, name: p.name, price: p.price,
+      productTypeId: 'PT-00002',
+      shop: { _id: SHOP_IDS.boutique2.toString(), name: 'BeautyStore' },
+      attributes: p.attrs, stock: 200,
+      promotion: { active: false }, status: 'ACTIVE',
+      photoUrl: null, photoPath: null,
+      createdAt: new Date('2026-01-01'), updatedAt: new Date('2026-01-01'),
+    });
+  }
+  await Product.insertMany(productDocs);
+  console.log(`✓ ${productDocs.length} produits`);
+
+  // ═══════════ RENTS ══════════════════════════════════════════════════
+  await Rent.insertMany([
+    {
+      _id: RENT_IDS.rent1,
+      boxId: BOX_IDS.box1, shopId: SHOP_IDS.boutique1,
+      startDate: new Date('2025-07-01'),
+      nextDeadline: new Date('2026-03-01'), // payé jusqu'à fév 2026 inclus
+      status: 'ACTIVE', amount: 80000, frequency: 'MONTHLY',
+    },
+    {
+      _id: RENT_IDS.rent2,
+      boxId: BOX_IDS.box2, shopId: SHOP_IDS.boutique2,
+      startDate: new Date('2026-01-01'),
+      nextDeadline: new Date('2026-02-01'), // seul janvier payé → en retard sur février
+      status: 'ACTIVE', amount: 60000, frequency: 'MONTHLY',
+    },
+  ]);
+  console.log('✓ 2 locations');
+
+  // ═══════════ LOYER TRANSACTIONS ═════════════════════════════════════
+  const loyerTx = [];
+
+  // boutique1 : juillet 2025 → février 2026 (8 mois, tout payé)
+  for (const p of ['2025-07','2025-08','2025-09','2025-10','2025-11','2025-12','2026-01','2026-02']) {
+    const [y, m] = p.split('-').map(Number);
+    loyerTx.push({
+      type: 'LOYER', total: 80000,
+      date: new Date(y, m - 1, 1),
+      userId: USER_IDS.boutique1,
+      rentId: RENT_IDS.rent1,
+      periode: p,
+    });
+  }
+
+  // boutique2 : janvier 2026 uniquement
+  loyerTx.push({
+    type: 'LOYER', total: 60000,
+    date: new Date(2026, 0, 1),
+    userId: USER_IDS.boutique2,
+    rentId: RENT_IDS.rent2,
+    periode: '2026-01',
+  });
+
+  await Transaction.insertMany(loyerTx);
+  console.log(`✓ ${loyerTx.length} transactions loyer`);
+
+  // ═══════════ GENERATE PURCHASES ═════════════════════════════════════
+  // Months: Aug 2025 → Feb 2026 (7 mois)
+  const months = [
+    { y: 2025, m: 7  }, // Août
+    { y: 2025, m: 8  }, // Sep
+    { y: 2025, m: 9  }, // Oct
+    { y: 2025, m: 10 }, // Nov
+    { y: 2025, m: 11 }, // Déc
+    { y: 2026, m: 0  }, // Jan
+    { y: 2026, m: 1  }, // Fév
+  ];
+
+  const buyers = [
+    { key: 'user1', name: 'Andry Rakoto',       days: [5, 18] },
+    { key: 'user2', name: 'Faly Randria',        days: [8, 22] },
+    { key: 'user3', name: 'Hery Rabemananjara',  days: [12, 26] },
+  ];
+
+  const totalSpent = { user1: 0, user2: 0, user3: 0 };
+  const panierDocs = [], cmdDocs = [], achatTx = [], mvtDocs = [];
+
+  for (let mi = 0; mi < months.length; mi++) {
+    const { y, m } = months[mi];
+    const hasCosmetics = mi >= 5; // boutique2 active à partir de jan 2026
+
+    for (let bi = 0; bi < buyers.length; bi++) {
+      const b = buyers[bi];
+      const uid = USER_IDS[b.key];
+
+      // ── Panier 1 : Électronique (boutique1) ──────────────────────────
+      const seed1 = mi * 3 + bi;
+      const picks1 = pickProducts(CHEAP_ELEC, seed1, 5);
+
+      const panierItems1 = picks1.map(({ product: p, qte }) => ({
+        productId: p._id, name: p.name, price: p.price, qte,
+      }));
+      const total1 = panierItems1.reduce((s, i) => s + i.price * i.qte, 0);
+
+      const pid1 = nextPNX();
+      const tid1 = new mongoose.Types.ObjectId();
+      const cid1 = nextCMD();
+      const d1 = new Date(y, m, b.days[0], 10, 0, 0);
+
+      panierDocs.push({
+        _id: pid1, acheteurId: uid.toString(), items: panierItems1,
+        total: total1, date: d1, etat: 'VALIDATED', createdAt: d1, updatedAt: d1,
+      });
+
+      cmdDocs.push({
+        _id: cid1,
+        acheteur: { _id: uid.toString(), name: b.name },
+        boutique: { _id: SHOP_IDS.boutique1.toString(), name: 'ElectroShop' },
+        transactionId: tid1.toString(),
+        items: picks1.map(({ product: p, qte }) => ({
+          produit: { _id: p._id, name: p.name, price: p.price, qte },
+        })),
+        totalAmount: total1,
+        totalItems: picks1.reduce((s, i) => s + i.qte, 0),
+        createdAt: d1, updatedAt: d1,
+      });
+
+      achatTx.push({
+        _id: tid1, type: 'ACHAT', total: total1,
+        date: d1, userId: uid, panierId: pid1,
+      });
+
+      for (const { product: p, qte } of picks1) {
+        stockTracker[p._id] += qte;
+        mvtDocs.push({
+          _id: nextMVT(), produitId: p._id, qte,
+          reason: 'VENTE', createdAt: d1, updatedAt: d1,
+        });
+      }
+
+      totalSpent[b.key] += total1;
+
+      // ── Panier 2 : Cosmétique (jan+) ou Électronique (août-déc) ─────
+      const seed2 = mi * 3 + bi + 11; // offset pour varier la sélection
+      let picks2, shopRef;
+
+      if (hasCosmetics) {
+        picks2 = pickProducts(CHEAP_COSM, seed2, 6);
+        shopRef = { _id: SHOP_IDS.boutique2.toString(), name: 'BeautyStore' };
+      } else {
+        picks2 = pickProducts(CHEAP_ELEC, seed2, 6);
+        shopRef = { _id: SHOP_IDS.boutique1.toString(), name: 'ElectroShop' };
+      }
+
+      const panierItems2 = picks2.map(({ product: p, qte }) => ({
+        productId: p._id, name: p.name, price: p.price, qte,
+      }));
+      const total2 = panierItems2.reduce((s, i) => s + i.price * i.qte, 0);
+
+      const pid2 = nextPNX();
+      const tid2 = new mongoose.Types.ObjectId();
+      const cid2 = nextCMD();
+      const d2 = new Date(y, m, b.days[1], 14, 30, 0);
+
+      panierDocs.push({
+        _id: pid2, acheteurId: uid.toString(), items: panierItems2,
+        total: total2, date: d2, etat: 'VALIDATED', createdAt: d2, updatedAt: d2,
+      });
+
+      cmdDocs.push({
+        _id: cid2,
+        acheteur: { _id: uid.toString(), name: b.name },
+        boutique: shopRef,
+        transactionId: tid2.toString(),
+        items: picks2.map(({ product: p, qte }) => ({
+          produit: { _id: p._id, name: p.name, price: p.price, qte },
+        })),
+        totalAmount: total2,
+        totalItems: picks2.reduce((s, i) => s + i.qte, 0),
+        createdAt: d2, updatedAt: d2,
+      });
+
+      achatTx.push({
+        _id: tid2, type: 'ACHAT', total: total2,
+        date: d2, userId: uid, panierId: pid2,
+      });
+
+      for (const { product: p, qte } of picks2) {
+        stockTracker[p._id] += qte;
+        mvtDocs.push({
+          _id: nextMVT(), produitId: p._id, qte,
+          reason: 'VENTE', createdAt: d2, updatedAt: d2,
+        });
+      }
+
+      totalSpent[b.key] += total2;
+    }
+  }
+
+  await Panier.insertMany(panierDocs);
+  await Command.insertMany(cmdDocs);
+  await Transaction.insertMany(achatTx);
+  await MvtStock.insertMany(mvtDocs);
+  console.log(`✓ ${panierDocs.length} paniers, ${cmdDocs.length} commandes, ${achatTx.length} tx achat, ${mvtDocs.length} mvt stock`);
+
+  // ═══════════ RECHARGE TRANSACTIONS ══════════════════════════════════
+  // Compute recharges so that solde ≈ 15 % of total spent (remainder)
+  const rechargeTx = [];
+  const userSoldes = {};
+
+  for (const key of ['user1', 'user2', 'user3']) {
+    const spent = totalSpent[key];
+    const remainder = Math.ceil(spent * 0.15 / 1000) * 1000; // ~15 %, arrondi au millier
+    const totalRecharge = spent + remainder;
+    const r1 = Math.round(totalRecharge * 0.6 / 1000) * 1000;
+    const r2 = totalRecharge - r1;
+
+    rechargeTx.push(
+      { type: 'RECHARGE', total: r1, date: new Date('2025-08-01'), userId: USER_IDS[key] },
+      { type: 'RECHARGE', total: r2, date: new Date('2025-12-01'), userId: USER_IDS[key] },
+    );
+    userSoldes[key] = remainder;
+  }
+
+  // Boutique owners : recharges covering rent
+  rechargeTx.push(
+    { type: 'RECHARGE', total: 1000000, date: new Date('2025-07-01'), userId: USER_IDS.boutique1 },
+    { type: 'RECHARGE', total: 200000,  date: new Date('2026-01-01'), userId: USER_IDS.boutique2 },
+  );
+  userSoldes.boutique1 = 1000000 - (80000 * 8); // 360 000
+  userSoldes.boutique2 = 200000 - 60000;          // 140 000
+  userSoldes.admin1 = 0;
+
+  await Transaction.insertMany(rechargeTx);
+  console.log(`✓ ${rechargeTx.length} transactions recharge`);
+
+  // ═══════════ USERS ══════════════════════════════════════════════════
+  await User.insertMany([
+    {
+      _id: USER_IDS.admin1, role: 'ADMIN', login: 'admin1', password: hash,
+      profile: { fullName: 'Administrateur Principal', tel: '0340000001', solde: 0 },
+      status: 'ACTIVE',
+      createdAt: new Date('2025-06-01'), updatedAt: new Date('2025-06-01'),
+    },
+    {
+      _id: USER_IDS.boutique1, role: 'BOUTIQUE', login: 'boutique1', password: hash,
+      profile: { fullName: 'Rakoto Jean', tel: '0340000002', solde: userSoldes.boutique1, email: 'rakoto@email.com' },
+      status: 'ACTIVE',
+      createdAt: new Date('2025-06-15'), updatedAt: new Date('2025-06-15'),
+    },
+    {
+      _id: USER_IDS.boutique2, role: 'BOUTIQUE', login: 'boutique2', password: hash,
+      profile: { fullName: 'Rasoa Marie', tel: '0340000003', solde: userSoldes.boutique2, email: 'rasoa@email.com' },
+      status: 'ACTIVE',
+      createdAt: new Date('2025-12-15'), updatedAt: new Date('2025-12-15'),
+    },
+    {
+      _id: USER_IDS.user1, role: 'ACHETEUR', login: 'user1', password: hash,
+      profile: { fullName: 'Andry Rakoto', tel: '0340000004', solde: userSoldes.user1 },
+      status: 'ACTIVE',
+      createdAt: new Date('2025-07-15'), updatedAt: new Date('2025-07-15'),
+    },
+    {
+      _id: USER_IDS.user2, role: 'ACHETEUR', login: 'user2', password: hash,
+      profile: { fullName: 'Faly Randria', tel: '0340000005', solde: userSoldes.user2, email: 'faly@email.com' },
+      status: 'ACTIVE',
+      createdAt: new Date('2025-07-20'), updatedAt: new Date('2025-07-20'),
+    },
+    {
+      _id: USER_IDS.user3, role: 'ACHETEUR', login: 'user3', password: hash,
+      profile: { fullName: 'Hery Rabemananjara', tel: '0340000006', solde: userSoldes.user3 },
+      status: 'ACTIVE',
+      createdAt: new Date('2025-08-01'), updatedAt: new Date('2025-08-01'),
+    },
+  ]);
+  console.log('✓ 6 utilisateurs');
+
+  // ═══════════ UPDATE PRODUCT STOCK ═══════════════════════════════════
+  for (const [pid, sold] of Object.entries(stockTracker)) {
+    if (sold > 0) {
+      const initial = pid <= 'PRD-00010' ? 100 : 200;
+      await Product.updateOne({ _id: pid }, { stock: initial - sold });
+    }
+  }
+  console.log('✓ Stock produits mis à jour');
+
+  // ═══════════ COUNTERS ═══════════════════════════════════════════════
+  await Counter.insertMany([
+    { _id: 'PRD', sequence: 20 },
+    { _id: 'PT',  sequence: 2 },
+    { _id: 'PNX', sequence: pnxSeq },
+    { _id: 'CMD', sequence: cmdSeq },
+    { _id: 'MVT', sequence: mvtSeq },
+  ]);
+  console.log('✓ Compteurs initialisés');
+
+  // ═══════════ SUMMARY ═══════════════════════════════════════════════
+  const totalTx = loyerTx.length + rechargeTx.length + achatTx.length;
+  console.log('\n═══════════════════════════════════════════════════════════');
+  console.log('  SEED TERMINÉ AVEC SUCCÈS');
+  console.log('═══════════════════════════════════════════════════════════');
+  console.log(`  Users .............. 6`);
+  console.log(`  Boxes .............. 3`);
+  console.log(`  Shops .............. 2`);
+  console.log(`  ProductTypes ....... 2`);
+  console.log(`  Products ........... ${productDocs.length}`);
+  console.log(`  Rents .............. 2`);
+  console.log(`  Paniers ............ ${panierDocs.length}`);
+  console.log(`  Commandes .......... ${cmdDocs.length}`);
+  console.log(`  Transactions ....... ${totalTx} (${loyerTx.length} loyer + ${rechargeTx.length} recharge + ${achatTx.length} achat)`);
+  console.log(`  MvtStock ........... ${mvtDocs.length}`);
+  console.log(`  Counters ........... 5`);
+  console.log('');
+  console.log('  Soldes utilisateurs :');
+  for (const [k, v] of Object.entries(userSoldes)) {
+    console.log(`    ${k.padEnd(12)} ${v.toLocaleString('fr-FR')} Ar`);
+  }
+  console.log('');
+  console.log('  Total dépensé (achats) :');
+  for (const [k, v] of Object.entries(totalSpent)) {
+    console.log(`    ${k.padEnd(12)} ${v.toLocaleString('fr-FR')} Ar`);
+  }
+  console.log('');
+  console.log('  Stock vendu par produit :');
+  for (const [pid, sold] of Object.entries(stockTracker)) {
+    if (sold > 0) console.log(`    ${pid}  -${sold}`);
+  }
+  console.log('═══════════════════════════════════════════════════════════');
+
+  await mongoose.disconnect();
+  console.log('\n✓ Déconnecté de MongoDB');
+}
+
+seed().catch(err => {
+  console.error('❌ Erreur seed:', err);
   mongoose.disconnect();
   process.exit(1);
 });
