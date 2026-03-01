@@ -20,14 +20,11 @@ class CommandController {
     try {
       const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
       const limit = Math.max(parseInt(req.query.limit, 10) || 10, 1);
-      const filter = {};
-      if (req.query.boutiqueId) filter.boutiqueId = req.query.boutiqueId;
-      if (req.query.acheteurId) filter.acheteurId = req.query.acheteurId;
-
-      const result = await commandService.getAll(filter, page, limit);
+      const result = await commandService.getAll(req.query, page, limit);
       return res.status(200).json({ success: true, ...result });
     } catch (error) {
-      return res.status(500).json({ success: false, message: error.message });
+      const status = error.message.includes('invalide') || error.message.includes('avant') ? 400 : 500;
+      return res.status(status).json({ success: false, message: error.message });
     }
   }
 
@@ -57,10 +54,11 @@ class CommandController {
       const userId = req.user.sub;
       const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
       const limit = Math.max(parseInt(req.query.limit, 10) || 10, 1);
-      const result = await commandService.getByBoutiqueUserId(userId, page, limit);
+      const result = await commandService.getByBoutiqueUserId(userId, req.query, page, limit);
       return res.status(200).json({ success: true, ...result });
     } catch (error) {
-      return res.status(500).json({ success: false, message: error.message });
+      const status = error.message.includes('invalide') || error.message.includes('avant') ? 400 : 500;
+      return res.status(status).json({ success: false, message: error.message });
     }
   }
 

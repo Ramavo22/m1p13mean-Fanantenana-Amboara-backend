@@ -83,7 +83,7 @@ class ProductController {
       const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
       const limit = Math.max(parseInt(req.query.limit, 10) || 10, 1);
 
-      const result = await productService.getProductsForUserShop(userId, page, limit);
+      const result = await productService.getMyProductsPaginated(userId, page, limit);
 
       return res.status(200).json({
         success: true,
