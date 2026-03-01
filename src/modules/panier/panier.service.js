@@ -104,10 +104,12 @@ class PanierService {
       const itemsParBoutique = {};
       for (const item of items) {
         const product = productsMap[item.productId];
-        const boutiqueId = product.shop._id;
+        const shopInfo = item.shop ?? product.shop;
+        if (!shopInfo) throw new Error(`Boutique introuvable pour le produit : ${item.productId}`);
+        const boutiqueId = shopInfo._id;
         if (!itemsParBoutique[boutiqueId]) {
           itemsParBoutique[boutiqueId] = {
-            boutique: { _id: product.shop._id, name: product.shop.name },
+            boutique: { _id: shopInfo._id, name: shopInfo.name },
             items: [],
           };
         }
