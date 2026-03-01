@@ -59,6 +59,44 @@ router.delete('/:id/photo', authenticateToken, (req, res) => shopController.remo
 
 /**
  * @swagger
+ * /api/shops/select:
+ *   get:
+ *     summary: Recuperer les shops pour un select
+ *     tags: [Shops]
+ *     description: Renvoie une liste simplifiee des shops (id et name uniquement) pour les dropdown/select
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Liste simplifiee des shops
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       _id:
+ *                         type: string
+ *                         example: "507f1f77bcf86cd799439011"
+ *                       name:
+ *                         type: string
+ *                         example: "Ma Boutique"
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
+ */
+router.get('/select', authenticateToken, (req, res) => shopController.getForSelect(req, res));
+
+/**
+ * @swagger
  * /api/shops:
  *   get:
  *     summary: Recuperer tous les shops
