@@ -118,6 +118,17 @@ class ProductService {
     return await productRepository.findFiltered(filter, page, limit);
   }
 
+  /**
+   * Produits de la boutique de l'utilisateur : DTO allégé avec label du productType, sans shop
+   */
+  async getMyProductsPaginated(userId, page = 1, limit = 10) {
+    const shop = await shopRepository.findShopByUserId(userId);
+    if (!shop) {
+      throw new Error('Aucune boutique trouvée pour cet utilisateur');
+    }
+    return await productRepository.findMyProductsPaginated(String(shop._id), page, limit);
+  }
+
   async getAllProductsPaginated(filter = {}, page = 1, limit = 10) {
     return await productRepository.findAllPaginated(filter, page, limit);
   }
