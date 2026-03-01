@@ -12,6 +12,11 @@ class CommandRepository {
 
     if (filter.boutiqueId) query['boutique._id'] = filter.boutiqueId;
     if (filter.acheteurId) query['acheteur._id'] = filter.acheteurId;
+    if (filter.startDate || filter.endDate) {
+      query.createdAt = {};
+      if (filter.startDate) query.createdAt.$gte = new Date(filter.startDate);
+      if (filter.endDate) query.createdAt.$lt = new Date(filter.endDate);
+    }
 
     const [data, total] = await Promise.all([
       Command.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit),
