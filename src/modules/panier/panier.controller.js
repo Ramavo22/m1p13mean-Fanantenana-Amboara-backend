@@ -48,6 +48,17 @@ class PanierController {
     }
   }
 
+  // GET /api/paniers/transaction/:transactionId
+  async getByTransactionId(req, res) {
+    try {
+      const { transactionId } = req.params;
+      const panier = await panierService.getPanierByTransactionId(transactionId);
+      return res.status(200).json({ success: true, data: panier });
+    } catch (error) {
+      return res.status(404).json({ success: false, message: error.message });
+    }
+  }
+
   // GET /api/paniers/:id
   async getById(req, res) {
     try {

@@ -229,6 +229,19 @@ class PanierService {
   }
 
   /**
+   * Retourne le panier associé à une transaction via transaction.panierId
+   */
+  async getPanierByTransactionId(transactionId) {
+    const transaction = await transactionRepository.findById(transactionId);
+    if (!transaction) throw new Error('Transaction introuvable');
+    if (!transaction.panierId) throw new Error('Aucun panier associé à cette transaction');
+
+    const panier = await panierRepository.findById(transaction.panierId);
+    if (!panier) throw new Error('Panier introuvable');
+    return panier;
+  }
+
+  /**
    * Retourne le panier PENDING de l'acheteur, ou null s'il n'en a pas
    */
   async getMyPendingPanier(acheteurId) {
