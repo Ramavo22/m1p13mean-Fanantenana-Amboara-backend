@@ -33,6 +33,10 @@ class ShopService {
     return await shopRepository.findAll(page, limit);
   }
 
+  async getShopsForSelect() {
+    return await shopRepository.findShopForSelect();
+  }
+
   async searchShopsWithOwnerProfile(filters, page = 1, limit = 10) {
     return await shopRepository.searchWithOwnerProfile(filters, page, limit);
   }

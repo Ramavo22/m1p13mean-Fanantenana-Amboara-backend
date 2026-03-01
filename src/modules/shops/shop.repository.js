@@ -3,6 +3,10 @@ const Shop = require('./shop.model');
 const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 class ShopRepository {
+    async findShopForSelect(){
+        return await Shop.find().select('_id name');
+    }
+
     async create(data){
         const shop = new Shop(data);
         return shop.save();

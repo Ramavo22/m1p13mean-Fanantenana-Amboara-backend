@@ -308,6 +308,7 @@ async function seed() {
 
       const panierItems1 = picks1.map(({ product: p, qte }) => ({
         productId: p._id, name: p.name, price: p.price, qte,
+        shop: { _id: SHOP_IDS.boutique1.toString(), name: 'ElectroShop' },
       }));
       const total1 = panierItems1.reduce((s, i) => s + i.price * i.qte, 0);
 
@@ -363,6 +364,7 @@ async function seed() {
 
       const panierItems2 = picks2.map(({ product: p, qte }) => ({
         productId: p._id, name: p.name, price: p.price, qte,
+        shop: shopRef,
       }));
       const total2 = panierItems2.reduce((s, i) => s + i.price * i.qte, 0);
 

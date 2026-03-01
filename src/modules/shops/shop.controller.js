@@ -45,6 +45,23 @@ class ShopController {
     }
   }
 
+  // GET /api/shops/select
+  async getForSelect(req, res) {
+    try {
+      const shops = await shopService.getShopsForSelect();
+
+      return res.status(200).json({
+        success: true,
+        data: shops,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+
   // GET /api/shops
   async getAll(req, res) {
     try {
