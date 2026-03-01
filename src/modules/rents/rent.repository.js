@@ -1,5 +1,4 @@
 const Rent = require('./rent.model');
-const mongoose = require('mongoose');
 
 class RentRepository {
     async createData(rentData) {
