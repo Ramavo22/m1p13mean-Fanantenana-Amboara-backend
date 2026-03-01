@@ -20,6 +20,10 @@ class StorageService {
         if (!bucket) throw new Error('Le bucket de destination est requis');
         if (!this.validateImageFile(file)) throw new Error('Type de fichier non autorisé');
 
+        console.log('en env,'+ this.productBucket+"\n\n\n");
+        console.log('en env,'+ this.shopBucket+"\n\n\n");
+        console.log('en fonction '+bucket);
+
         const fileExtension = path.extname(file.originalname).toLowerCase();
         const uniqueName = `photo_${Date.now()}_${crypto.randomUUID()}${fileExtension}`;
 
