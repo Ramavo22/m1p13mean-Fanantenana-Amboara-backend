@@ -63,6 +63,66 @@ class ProductRepository {
 
     }
 
+    /**
+     * Produits de la boutique de l'utilisateur, avec le label du productType, sans infos shop
+     */
+    async findMyProductsPaginated(shopId, page = 1, limit = 10) {
+        const skip = (page - 1) * limit;
+
+        const pipeline = [
+            { $match: { 'shop._id': shopId } },
+            {
+                $lookup: {
+                    from: 'producttypes',
+                    localField: 'productTypeId',
+                    foreignField: '_id',
+                    as: 'productTypeInfo'
+                }
+            },
+            {
+                $addFields: {
+                    productTypeName: { $arrayElemAt: ['$productTypeInfo.label', 0] }
+                }
+            },
+            {
+                $project: {
+                    _id: 1,
+                    name: 1,
+                    price: 1,
+                    stock: 1,
+                    productTypeId: 1,
+                    productTypeName: 1,
+                    attributes: 1,
+                    status: 1,
+                    promotion: 1,
+                    photoUrl: 1,
+                    createdAt: 1,
+                    updatedAt: 1
+                }
+            },
+            {
+                $facet: {
+                    data: [{ $skip: skip }, { $limit: limit }],
+                    totalCount: [{ $count: 'count' }]
+                }
+            }
+        ];
+
+        const result = await Product.aggregate(pipeline);
+        const data = result[0].data;
+        const total = result[0].totalCount[0]?.count || 0;
+
+        return {
+            data,
+            pagination: {
+                page,
+                limit,
+                total,
+                pages: Math.ceil(total / limit)
+            }
+        };
+    }
+
 
 
     async findById(id) {
