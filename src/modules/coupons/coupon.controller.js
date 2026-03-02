@@ -62,6 +62,26 @@ class CouponController {
     }
   }
 
+  async getValidCouponByCode(req, res) {
+    try {
+      const userId = req.user?.sub;
+      const couponCode = req.params.code;
+
+      const result = await couponService.validateCoupon(couponCode, userId);
+      const formattedCoupon = await couponService.formatCoupon(result);
+
+      return res.status(200).json({
+        success: true,
+        data: formattedCoupon,
+      });
+    } catch (error) {
+      return res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+
   async getById(req, res) {
     try {
       const coupon = await couponService.getCouponById(req.params.id);

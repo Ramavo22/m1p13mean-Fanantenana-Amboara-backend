@@ -48,6 +48,21 @@ const commandSchema = new mongoose.Schema(
       required: true,
       min: 0,
     },
+    totalBeforeDiscount: {
+      type: Number,
+      min: 0,
+      default: null,
+    },
+    discount: {
+      type: Number,
+      min: 0,
+      default: 0,
+    },
+    couponId: {
+      type: String,
+      ref: 'Coupon',
+      default: null,
+    },
     totalItems: {
       type: Number,
       required: true,
