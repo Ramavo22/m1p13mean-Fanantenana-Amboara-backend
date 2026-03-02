@@ -64,8 +64,18 @@ class CouponController {
       const role = req.user?.role;
       const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
       const limit = Math.max(parseInt(req.query.limit, 10) || 10, 1);
+      const filters = {
+        type: req.query.type,
+        status: req.query.status,
+      };
 
-      const result = await couponService.getCouponsForConnectedUser(userId, role, page, limit);
+      const result = await couponService.getCouponsForConnectedUser(
+        userId,
+        role,
+        filters,
+        page,
+        limit
+      );
 
       return res.status(200).json({
         success: true,
@@ -73,7 +83,10 @@ class CouponController {
         pagination: result.pagination,
       });
     } catch (error) {
-      const statusCode = error.message === 'Role not allowed for this resource' ? 403 : 400;
+      const statusCode =
+        error.message === 'Role not allowed for this resource'
+          ? 403
+          : 400;
       return res.status(statusCode).json({
         success: false,
         message: error.message,

@@ -55,11 +55,42 @@ class CouponService {
     return await couponRepository.findAll(filter, page, limit);
   }
 
+  _buildCouponFilters(filters = {}) {
+    const builtFilter = {};
+
+    if (filters.type) {
+      const normalizedType = String(filters.type).toUpperCase().trim();
+        if (!['PACK', 'SINGLE'].includes(normalizedType)) {
+            throw new Error('Type must be PACK, SINGLE or ALL');
+        }
+        builtFilter.type = normalizedType;
+    }
+
+    if (filters.status) {
+      const normalizedExpiration = String(filters.status).toLowerCase().trim();
+        if (normalizedExpiration === 'active') {
+            builtFilter.expiresAt = { $gte: new Date() };
+        } else if (normalizedExpiration === 'expired') {
+            builtFilter.expiresAt = { $lt: new Date() };
+        } else {
+            throw new Error('Status must be active or expired');
+        }
+    }
+
+    return builtFilter;
+  }
+
+  async getFilteredCoupons(filters = {}, page = 1, limit = 10) {
+    const filter = this._buildCouponFilters(filters);
+
+    return await couponRepository.findAll(filter, page, limit);
+  }
+
   async getActiveCoupons(page = 1, limit = 10) {
     return await couponRepository.findAllActive({}, page, limit);
   }
 
-  async getCouponsForConnectedUser(userId, role, page = 1, limit = 10) {
+  async getCouponsForConnectedUser(userId, role, filters = {}, page = 1, limit = 10) {
     if (!userId) {
       throw new Error("User ID is required");
     }
@@ -68,13 +99,15 @@ class CouponService {
       throw new Error("User role is required");
     }
 
+    const commonFilters = this._buildCouponFilters(filters);
+
     if (role === "BOUTIQUE") {
       const shop = await shopService.getUserShopInfo(userId);
       if (!shop) {
         throw new Error("Shop not found for the connected user");
       }
       return await couponRepository.findAll(
-        { boutiqueId: shop._id },
+        { boutiqueId: shop._id, ...commonFilters },
         page,
         limit
       );
@@ -82,7 +115,7 @@ class CouponService {
 
     if (role === "ACHETEUR") {
       return await couponRepository.findAll(
-        { "users._id": userId },
+        { "users._id": userId, ...commonFilters },
         page,
         limit
       );
