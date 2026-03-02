@@ -179,6 +179,29 @@ class UserService {
     delete userData.password;
     return userData;
   }
+
+  // Changer le mot de passe d'un utilisateur
+  async changePassword(userId, oldPassword, newPassword) {
+    // Récupérer l'utilisateur avec le mot de passe
+    const user = await userRepository.findByIdWithPassword(userId);
+    if (!user) {
+      throw new Error('Utilisateur non trouvé');
+    }
+
+    // Vérifier l'ancien mot de passe
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    if (!isMatch) {
+      throw new Error('L\'ancien mot de passe est incorrect');
+    }
+
+    // Hasher le nouveau mot de passe
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Mettre à jour le mot de passe
+    await userRepository.update(userId, { password: hashedPassword });
+
+    return { message: 'Mot de passe changé avec succès' };
+  }
 }
 
 module.exports = new UserService();

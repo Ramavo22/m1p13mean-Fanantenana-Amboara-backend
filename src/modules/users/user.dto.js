@@ -131,6 +131,50 @@ class UserDTO {
       errors,
     };
   }
+
+  // Valider les données de changement de mot de passe
+  static validateChangePassword(data) {
+    const errors = [];
+
+    if (!data.oldPassword) {
+      errors.push('L\'ancien mot de passe est requis');
+    }
+
+    if (!data.newPassword) {
+      errors.push('Le nouveau mot de passe est requis');
+    } else {
+      // Vérifier que le mot de passe n'est pas vide ou uniquement des espaces
+      if (data.newPassword.trim().length === 0) {
+        errors.push('Le nouveau mot de passe ne peut pas être vide ou contenir uniquement des espaces');
+      }
+
+      // Vérifier qu'il n'y a pas d'espaces
+      if (/\s/.test(data.newPassword)) {
+        errors.push('Le nouveau mot de passe ne doit pas contenir d\'espaces');
+      }
+
+      // Vérifier la longueur minimale
+      if (data.newPassword.length < 6) {
+        errors.push('Le nouveau mot de passe doit contenir au moins 6 caractères');
+      }
+
+      // Vérifier que le nouveau mot de passe est différent de l'ancien
+      if (data.oldPassword && data.newPassword === data.oldPassword) {
+        errors.push('Le nouveau mot de passe doit être différent de l\'ancien mot de passe');
+      }
+    }
+
+    if (!data.confirmPassword) {
+      errors.push('La confirmation du mot de passe est requise');
+    } else if (data.newPassword && data.confirmPassword !== data.newPassword) {
+      errors.push('La confirmation du mot de passe ne correspond pas au nouveau mot de passe');
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors,
+    };
+  }
 }
 
 module.exports = UserDTO;

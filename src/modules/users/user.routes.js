@@ -389,6 +389,69 @@ router.patch('/:id/status', authenticateToken, (req, res) => userController.chan
  */
 router.patch('/:id/solde', authenticateToken, authorizeRoles('ACHETEUR'), (req, res) => userController.updateSolde(req, res));
 
+// Middleware de validation pour le changement de mot de passe
+const validateChangePassword = (req, res, next) => {
+  const validation = UserDTO.validateChangePassword(req.body);
+  if (!validation.isValid) {
+    return res.status(400).json({
+      success: false,
+      message: 'Données invalides',
+      errors: validation.errors,
+    });
+  }
+  next();
+};
+
+/**
+ * @swagger
+ * /api/users/me/change-password:
+ *   patch:
+ *     summary: Changer le mot de passe de l'utilisateur connecte
+ *     tags: [Utilisateurs]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [oldPassword, newPassword, confirmPassword]
+ *             properties:
+ *               oldPassword:
+ *                 type: string
+ *                 example: oldPassword123
+ *               newPassword:
+ *                 type: string
+ *                 example: newPassword456
+ *               confirmPassword:
+ *                 type: string
+ *                 example: newPassword456
+ *     responses:
+ *       200:
+ *         description: Mot de passe change avec succes
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Mot de passe change avec succes
+ *       400:
+ *         $ref: '#/components/responses/BadRequest'
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       404:
+ *         $ref: '#/components/responses/NotFound'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
+ */
+router.patch('/me/change-password', authenticateToken, validateChangePassword, (req, res) => userController.changePassword(req, res));
+
 /**
  * @swagger
  * /api/users/{id}:
