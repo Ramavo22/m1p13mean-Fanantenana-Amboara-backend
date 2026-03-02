@@ -8,13 +8,13 @@ class TransactionController {
             const transaction = await transactionService.createTransaction(transactionData);
             return res.status(201).json({
                 success: true,
-                message: 'Transaction created successfully',
+                message: 'Transaction créée avec succès',
                 data: transaction,
             });
         } catch (error) {
             return res.status(400).json({
                 success: false,
-                message: error.message || 'Error creating transaction',
+                message: error.message || 'Erreur lors de la création de la transaction',
             });
         }
     }
@@ -34,14 +34,14 @@ class TransactionController {
             const transactions = await transactionService.getTransactionsByUserId(filters, page, limit);
             return res.status(200).json({
                 success: true,
-                message: 'Transactions retrieved successfully',
+                message: 'Transactions récupérées avec succès',
                 data: transactions.data,
                 pagination: transactions.pagination,
             });
         } catch (error) {
             return res.status(400).json({
                 success: false,
-                message: error.message || 'Error retrieving transactions',
+                message: error.message || 'Erreur lors de la récupération des transactions',
             });
         }
     }
@@ -60,14 +60,32 @@ class TransactionController {
             const transactions = await transactionService.getAllTransactions(filters, page, limit);
             return res.status(200).json({
                 success: true,
-                message: 'Transactions retrieved successfully',
+                message: 'Transactions récupérées avec succès',
                 data: transactions.data,
                 pagination: transactions.pagination,
             });
         } catch (error) {
             return res.status(400).json({
                 success: false,
-                message: error.message || 'Error retrieving transactions',
+                message: error.message || 'Erreur lors de la récupération des transactions',
+            });
+        }
+    }
+
+    // Récupérer les transactions LOYER filtrées par année et mois
+    async getLoyerByYearMonth(req, res) {
+        try {
+            const { year, month } = req.query;
+            const transactions = await transactionService.getLoyerByYearMonth(year, month);
+            return res.status(200).json({
+                success: true,
+                message: 'Transactions LOYER récupérées avec succès',
+                data: transactions,
+            });
+        } catch (error) {
+            return res.status(400).json({
+                success: false,
+                message: error.message || 'Erreur lors de la récupération des transactions LOYER',
             });
         }
     }
@@ -79,13 +97,13 @@ class TransactionController {
             const transaction = await transactionService.getTransactionById(transactionId);
             return res.status(200).json({
                 success: true,
-                message: 'Transaction retrieved successfully',
+                message: 'Transaction récupérée avec succès',
                 data: transaction,
             });
         } catch (error) {
             return res.status(400).json({
                 success: false,
-                message: error.message || 'Error retrieving transaction',
+                message: error.message || 'Erreur lors de la récupération de la transaction',
             });
         }
 

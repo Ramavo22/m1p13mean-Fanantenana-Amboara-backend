@@ -12,13 +12,13 @@ class UserController {
       
       return res.status(201).json({
         success: true,
-        message: 'User created successfully',
+        message: 'Utilisateur créé avec succès',
         data: user,
       });
     } catch (error) {
       return res.status(400).json({
         success: false,
-        message: error.message || 'Error creating user',
+        message: error.message || 'Erreur lors de la création de l\'utilisateur',
       });
     }
   }
@@ -31,7 +31,7 @@ class UserController {
       if (!login || !password) {
         return res.status(400).json({
           success: false,
-          message: 'Login and password are required',
+          message: 'Le login et le mot de passe sont obligatoires',
         });
       }
 
@@ -45,7 +45,7 @@ class UserController {
 
       return res.status(200).json({
         success: true,
-        message: 'Authentication successful',
+        message: 'Authentification réussie',
         token,
         expiresIn: process.env.JWT_EXPIRES_IN || '2h',
         user,
@@ -53,7 +53,7 @@ class UserController {
     } catch (error) {
       return res.status(401).json({
         success: false,
-        message: error.message || 'Invalid credentials',
+        message: error.message || 'Identifiants invalides',
       });
     }
   }
@@ -70,7 +70,7 @@ class UserController {
     } catch (error) {
       return res.status(404).json({
         success: false,
-        message: error.message || 'User not found',
+        message: error.message || 'Utilisateur introuvable',
       });
     }
   }
@@ -88,7 +88,7 @@ class UserController {
     } catch (error) {
       return res.status(404).json({
         success: false,
-        message: error.message || 'User not found',
+        message: error.message || 'Utilisateur introuvable',
       });
     }
   }
@@ -106,7 +106,7 @@ class UserController {
     } catch (error) {
       return res.status(404).json({
         success: false,
-        message: error.message || 'User not found',
+        message: error.message || 'Utilisateur introuvable',
       });
     }
   }
@@ -133,7 +133,7 @@ class UserController {
     } catch (error) {
       return res.status(500).json({
         success: false,
-        message: error.message || 'Error retrieving users',
+        message: error.message || 'Erreur lors de la récupération des utilisateurs',
       });
     }
   }
@@ -148,13 +148,13 @@ class UserController {
       
       return res.status(200).json({
         success: true,
-        message: 'User updated successfully',
+        message: 'Utilisateur mis à jour avec succès',
         data: user,
       });
     } catch (error) {
       return res.status(400).json({
         success: false,
-        message: error.message || 'Error updating user',
+        message: error.message || 'Erreur lors de la mise à jour de l\'utilisateur',
       });
     }
   }
@@ -167,12 +167,12 @@ class UserController {
       
       return res.status(200).json({
         success: true,
-        message: 'User deleted successfully',
+        message: 'Utilisateur supprimé avec succès',
       });
     } catch (error) {
       return res.status(404).json({
         success: false,
-        message: error.message || 'User not found',
+        message: error.message || 'Utilisateur introuvable',
       });
     }
   }
@@ -190,7 +190,7 @@ class UserController {
     } catch (error) {
       return res.status(400).json({
         success: false,
-        message: error.message || 'Error retrieving users by role',
+        message: error.message || 'Erreur lors de la récupération des utilisateurs par rôle',
       });
     }
   }
@@ -208,7 +208,7 @@ class UserController {
     } catch (error) {
       return res.status(400).json({
         success: false,
-        message: error.message || 'Error retrieving users by status',
+        message: error.message || 'Erreur lors de la récupération des utilisateurs par statut',
       });
     }
   }
@@ -223,13 +223,13 @@ class UserController {
       
       return res.status(200).json({
         success: true,
-        message: 'Status updated successfully',
+        message: 'Statut mis à jour avec succès',
         data: user,
       });
     } catch (error) {
       return res.status(400).json({
         success: false,
-        message: error.message || 'Error updating status',
+        message: error.message || 'Erreur lors de la mise à jour du statut',
       });
     }
   }
@@ -244,13 +244,33 @@ class UserController {
       
       return res.status(200).json({
         success: true,
-        message: 'Solde updated successfully',
+        message: 'Solde mis à jour avec succès',
         data: user,
       });
     } catch (error) {
       return res.status(400).json({
         success: false,
-        message: error.message || 'Error updating user solde',
+        message: error.message || 'Erreur lors de la mise à jour du solde',
+      });
+    }
+  }
+
+  // Changer le mot de passe
+  async changePassword(req, res) {
+    try {
+      const userId = req.user.sub;
+      const { oldPassword, newPassword } = req.body;
+
+      const result = await userService.changePassword(userId, oldPassword, newPassword);
+      
+      return res.status(200).json({
+        success: true,
+        message: result.message,
+      });
+    } catch (error) {
+      return res.status(400).json({
+        success: false,
+        message: error.message || 'Erreur lors du changement de mot de passe',
       });
     }
   }

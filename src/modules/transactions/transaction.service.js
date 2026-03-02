@@ -6,15 +6,15 @@ class TransactionService {
         const amount = transactionData.total ?? transactionData.amount;
 
         if (typeof amount !== 'number' || Number.isNaN(amount) || amount <= 0) {
-            throw new Error('The transaction amount must be greater than zero');
+            throw new Error('Le montant de la transaction doit être supérieur à zéro');
         }
 
         if (!transactionData.type || !['ACHAT', 'LOYER', 'RECHARGE'].includes(transactionData.type)) {
-            throw new Error('Invalid transaction type. Valid types are: ACHAT, LOYER, RECHARGE');
+            throw new Error('Type de transaction invalide. Les types valides sont : ACHAT, LOYER, RECHARGE');
         }
         
         if (!transactionData.userId) {
-            throw new Error('The user ID is required to create a transaction');
+            throw new Error('L\'ID utilisateur est requis pour créer une transaction');
         }
 
         if (transactionData.total == null) {
@@ -29,7 +29,7 @@ class TransactionService {
     async getTransactionById(transactionId) {
         const transaction = await transactionRepository.findById(transactionId);
         if (!transaction) {
-            throw new Error('Transaction not found');
+            throw new Error('Transaction introuvable');
         }     return transaction;
     }
 
@@ -45,24 +45,39 @@ class TransactionService {
         return await transactionRepository.findAll(filters, page, limit);
     }
 
+    // Récupérer les transactions LOYER filtrées par année et mois
+    async getLoyerByYearMonth(year, month) {
+        const y = parseInt(year, 10);
+        const m = parseInt(month, 10);
+
+        if (!year || isNaN(y) || y < 2000 || y > 2100) {
+            throw new Error('Année invalide. Fournir une année entre 2000 et 2100.');
+        }
+        if (!month || isNaN(m) || m < 1 || m > 12) {
+            throw new Error('Mois invalide. Fournir un mois entre 1 et 12.');
+        }
+
+        return await transactionRepository.findLoyerByYearMonth(y, m);
+    }
+
     async validateTransactionFilters(type, startDate, endDate) {
         const validTypes = ['ACHAT', 'LOYER', 'RECHARGE'];
 
         if (type && !validTypes.includes(type)) {
-          throw new Error("Invalid transaction type");
+          throw new Error("Type de transaction invalide");
         }
 
         if (startDate && isNaN(Date.parse(startDate))) {
-          throw new Error("Invalid start date");
+          throw new Error("Date de début invalide");
         }
 
         if (endDate && isNaN(Date.parse(endDate))) {
-          throw new Error("Invalid end date");
+          throw new Error("Date de fin invalide");
         }
 
         if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
           throw new Error(
-            "The start date must be earlier than the end date"
+            "La date de début doit être antérieure à la date de fin"
           );
         }
     }

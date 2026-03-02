@@ -22,7 +22,7 @@ const attributeSchema = new mongoose.Schema(
         validator: function (v) {
           return this.type !== 'ENUM' || v.length > 0;
         },
-        message: 'values is required when type is ENUM'
+        message: 'les valeurs sont obligatoires quand le type est ENUM'
       }
     },
 
@@ -32,7 +32,7 @@ const attributeSchema = new mongoose.Schema(
         validator: function (v) {
           return this.type !== 'NUMBER' || v !== undefined;
         },
-        message: 'min is only allowed for NUMBER type'
+        message: 'min est uniquement autorisé pour le type NUMBER'
       }
     },
 
@@ -42,7 +42,7 @@ const attributeSchema = new mongoose.Schema(
         validator: function (v) {
           return this.type !== 'NUMBER' || v !== undefined;
         },
-        message: 'max is only allowed for NUMBER type'
+        message: 'max est uniquement autorisé pour le type NUMBER'
       }
     }
   },
@@ -69,7 +69,7 @@ const productTypeSchema = new mongoose.Schema(
           const codes = attrs.map(a => a.code);
           return codes.length === new Set(codes).size;
         },
-        message: 'Duplicate attribute code in product type'
+        message: 'Code d\'attribut en doublon dans le type de produit'
       }
     }
   },

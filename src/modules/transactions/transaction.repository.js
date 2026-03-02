@@ -106,6 +106,13 @@ class TransactionRepository {
         };
     }
 
+    // Récupérer les transactions LOYER filtrées par année et mois
+    async findLoyerByYearMonth(year, month) {
+        const periode = `${year}-${String(month).padStart(2, '0')}`;
+        const filter = { type: 'LOYER', periode };
+        return await Transaction.find(filter).sort({ date: -1 });
+    }
+
     async getDistinctBuyers() {
         const uniqueBuyers = await Transaction.distinct('userId', { type: 'ACHAT' });
         return uniqueBuyers.length;

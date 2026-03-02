@@ -9,10 +9,10 @@ class ShopService {
   async createShop(data, photoFile = null) {
     // Exemple de validation métier
     if (!data.name) {
-      throw new Error('Shop name is required');
+      throw new Error('Le nom de la boutique est obligatoire');
     }
     if (!data.ownerUserId) {
-      throw new Error('The ownerUserId is required');
+      throw new Error('Le ownerUserId est obligatoire');
     }
 
     // Gestion de la photo si fournie
@@ -45,7 +45,7 @@ class ShopService {
     const shop = await shopRepository.findById(id);
 
     if (!shop) {
-      throw new Error('Shop not found');
+      throw new Error('Boutique introuvable');
     }
 
     return shop;
@@ -78,7 +78,7 @@ class ShopService {
     const shop = await shopRepository.update(id, data);
 
     if (!shop) {
-      throw new Error('Shop not found');
+      throw new Error('Boutique introuvable');
     }
 
     return shop;
@@ -87,7 +87,7 @@ class ShopService {
   async deleteShop(id) {
     const shop = await shopRepository.findById(id);
     if (!shop) {
-      throw new Error('Shop not found');
+      throw new Error('Boutique introuvable');
     }
 
     // Supprimer la photo associée si elle existe
@@ -97,7 +97,7 @@ class ShopService {
 
     const deletedShop = await shopRepository.delete(id);
     if (!deletedShop) {
-      throw new Error('Shop not found');
+      throw new Error('Boutique introuvable');
     }
 
     return deletedShop;
@@ -106,23 +106,23 @@ class ShopService {
   async assignateOrDesassignateBoxToShop(assignationInformation) {
     const box = await boxRepository.findById(assignationInformation.boxId);
     if (!box) {
-      throw new Error("The box was not found");
+      throw new Error("La box est introuvable");
     }
 
     const shop = await shopRepository.findById(assignationInformation.shopId);
     if (!shop) {
-      throw new Error("The shop was not found");
+      throw new Error("La boutique est introuvable");
     }
 
     let rent = null;
 
     if (assignationInformation.isAssignate) {
       if (shop.boxId) {
-        throw new Error("The shop already has an assigned box");
+        throw new Error("La boutique a déjà une box assignée");
       }
 
       if (!BoxUtils.validateStateChange(box.state, 'RENTED')) {
-        throw new Error('A rented box cannot be assigned to a shop');
+        throw new Error('Une box louée ne peut pas être assignée à une boutique');
       }
 
       shop.boxId = box._id;
@@ -140,11 +140,11 @@ class ShopService {
 
     } else {
       if (!shop.boxId) {
-        throw new Error("The shop does not have an assigned box");
+        throw new Error("La boutique n'a pas de box assignée");
       }
 
       if (!BoxUtils.validateStateChange(box.state, 'AVAILABLE')) {
-        throw new Error('Impossible to unassign a box in this state');
+        throw new Error('Impossible de désassigner une box dans cet état');
       }
 
       const activeRent = await rentService.getActiveRentByBoxAndShop(box._id, shop._id);
@@ -172,7 +172,7 @@ class ShopService {
     const shop = await shopRepository.findShopByUserId(userId);
     
     if (!shop) {
-      throw new Error('No shop found for this user');
+      throw new Error('Aucune boutique trouvée pour cet utilisateur');
     }
 
     return shop;
@@ -202,7 +202,7 @@ class ShopService {
       const updateData = { photoUrl: photoData.publicUrl, photoPath: photoData.fileName };
 
       const shop = await shopRepository.update(id, updateData);
-      if (!shop) throw new Error('Shop not found');
+      if (!shop) throw new Error('Boutique introuvable');
 
       return shop;
     } catch (error) {
@@ -226,7 +226,7 @@ class ShopService {
     const updateData = { photoUrl: null, photoPath: null };
     const shop = await shopRepository.update(id, updateData);
 
-    if (!shop) throw new Error('Shop not found');
+    if (!shop) throw new Error('Boutique introuvable');
     return shop;
   }
 }

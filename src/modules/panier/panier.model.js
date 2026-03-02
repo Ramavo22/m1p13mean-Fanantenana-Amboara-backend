@@ -59,6 +59,21 @@ const panierSchema = new mongoose.Schema(
       min: 0,
       default: 0,
     },
+    totalBeforeDiscount: {
+      type: Number,
+      min: 0,
+      default: null,
+    },
+    discount: {
+      type: Number,
+      min: 0,
+      default: 0,
+    },
+    couponId: {
+      type: String,
+      ref: 'Coupon',
+      default: null,
+    },
     date: {
       type: Date,
       default: Date.now,

@@ -75,9 +75,9 @@ class PanierController {
   async create(req, res) {
     try {
       const acheteurId = req.user.sub;
-      const { items, etat } = req.body;
+      const { items, etat, couponId } = req.body;
 
-      const panier = await panierService.create(acheteurId, items, etat);
+      const panier = await panierService.create(acheteurId, items, etat, couponId);
 
       return res.status(201).json({
         success: true,
