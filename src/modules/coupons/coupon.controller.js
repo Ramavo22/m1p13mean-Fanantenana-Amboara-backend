@@ -117,6 +117,23 @@ class CouponController {
     }
   }
 
+  async getDetails(req, res) {
+    try {
+      const couponDetail = await couponService.getCouponDetails(req.params.id);
+
+      return res.status(200).json({
+        success: true,
+        data: couponDetail,
+      });
+    } catch (error) {
+      const statusCode = error.message === 'Coupon not found' ? 404 : 500;
+      return res.status(statusCode).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+
   async update(req, res) {
     try {
       const coupon = await couponService.updateCoupon(req.params.id, req.body);

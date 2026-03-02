@@ -1,6 +1,7 @@
 const couponRepository = require('./coupon.repository');
 const { generateCouponId } = require('../../utils/utils.generator');
 const shopService = require('../shops/shop.service');
+const productRepository = require('../products/product.repository');
 
 class CouponService {
   async createCoupon(data, userId = null) {
@@ -98,6 +99,50 @@ class CouponService {
     }
 
     return coupon;
+  }
+
+  /**
+   * Récupère un coupon avec ses items enrichis des données produit complètes.
+   * Exclut le champ `users` de la réponse.
+   * Chaque item contient toutes les propriétés nécessaires au product-card.
+   */
+  async getCouponDetails(id) {
+    const coupon = await couponRepository.findById(id);
+    if (!coupon) {
+      throw new Error('Coupon not found');
+    }
+
+    const productIds = coupon.items.map(item => item._id);
+    const products = await productRepository.findAll({ _id: { $in: productIds } });
+
+    const productsMap = new Map(products.map(p => [p._id, p]));
+
+    const enrichedItems = coupon.items
+      .map(item => {
+        const product = productsMap.get(item._id);
+        if (!product) return null;
+        return {
+          _id: product._id,
+          name: product.name,
+          price: product.price,
+          stock: product.stock,
+          shop: product.shop,
+          attributes: product.attributes,
+          promotion: product.promotion,
+          photoUrl: product.photoUrl || null,
+          productTypeId: product.productTypeId,
+          status: product.status,
+        };
+      })
+      .filter(Boolean);
+
+    const couponObj = coupon.toObject ? coupon.toObject() : { ...coupon };
+    delete couponObj.users;
+
+    return {
+      ...couponObj,
+      items: enrichedItems,
+    };
   }
 
   async updateCoupon(id, data) {
