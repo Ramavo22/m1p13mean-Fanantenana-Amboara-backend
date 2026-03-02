@@ -45,6 +45,21 @@ class TransactionService {
         return await transactionRepository.findAll(filters, page, limit);
     }
 
+    // Récupérer les transactions LOYER filtrées par année et mois
+    async getLoyerByYearMonth(year, month) {
+        const y = parseInt(year, 10);
+        const m = parseInt(month, 10);
+
+        if (!year || isNaN(y) || y < 2000 || y > 2100) {
+            throw new Error('Année invalide. Fournir une année entre 2000 et 2100.');
+        }
+        if (!month || isNaN(m) || m < 1 || m > 12) {
+            throw new Error('Mois invalide. Fournir un mois entre 1 et 12.');
+        }
+
+        return await transactionRepository.findLoyerByYearMonth(y, m);
+    }
+
     async validateTransactionFilters(type, startDate, endDate) {
         const validTypes = ['ACHAT', 'LOYER', 'RECHARGE'];
 

@@ -38,6 +38,41 @@ router.post('/', authenticateToken, (req, res) => transactionController.create(r
 
 /**
  * @swagger
+ * /api/transactions/loyer:
+ *   get:
+ *     summary: Recuperer les transactions LOYER filtrees par annee et mois
+ *     tags: [Transactions]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: year
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           example: 2025
+ *         description: Annee (ex: 2025)
+ *       - in: query
+ *         name: month
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 12
+ *           example: 3
+ *         description: Mois (1-12)
+ *     responses:
+ *       200:
+ *         description: Transactions LOYER recuperees avec succes
+ *       400:
+ *         $ref: '#/components/responses/BadRequest'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
+ */
+router.get('/loyer', authenticateToken, (req, res) => transactionController.getLoyerByYearMonth(req, res));
+
+/**
+ * @swagger
  * /api/transactions/user/{userId}:
  *   get:
  *     summary: Recuperer les transactions d'un utilisateur

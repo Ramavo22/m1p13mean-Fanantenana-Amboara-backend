@@ -72,6 +72,24 @@ class TransactionController {
         }
     }
 
+    // Récupérer les transactions LOYER filtrées par année et mois
+    async getLoyerByYearMonth(req, res) {
+        try {
+            const { year, month } = req.query;
+            const transactions = await transactionService.getLoyerByYearMonth(year, month);
+            return res.status(200).json({
+                success: true,
+                message: 'Transactions LOYER récupérées avec succès',
+                data: transactions,
+            });
+        } catch (error) {
+            return res.status(400).json({
+                success: false,
+                message: error.message || 'Erreur lors de la récupération des transactions LOYER',
+            });
+        }
+    }
+
     // Récupérer une transaction par ID
     async getById(req, res) {
         try {
