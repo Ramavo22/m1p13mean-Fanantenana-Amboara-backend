@@ -9,7 +9,7 @@ class CouponController {
 
       return res.status(201).json({
         success: true,
-        message: 'Coupon created successfully',
+        message: 'Coupon créé avec succès',
         data: coupon,
       });
     } catch (error) {
@@ -84,7 +84,7 @@ class CouponController {
       });
     } catch (error) {
       const statusCode =
-        error.message === 'Role not allowed for this resource'
+        error.message === 'Rôle non autorisé pour cette ressource'
           ? 403
           : 400;
       return res.status(statusCode).json({
@@ -139,7 +139,7 @@ class CouponController {
         data: couponDetail,
       });
     } catch (error) {
-      const statusCode = error.message === 'Coupon not found' ? 404 : 500;
+      const statusCode = error.message === 'Coupon introuvable' ? 404 : 500;
       return res.status(statusCode).json({
         success: false,
         message: error.message,
@@ -153,11 +153,11 @@ class CouponController {
 
       return res.status(200).json({
         success: true,
-        message: 'Coupon updated successfully',
+        message: 'Coupon mis à jour avec succès',
         data: coupon,
       });
     } catch (error) {
-      const statusCode = error.message === 'Coupon not found' ? 404 : 400;
+      const statusCode = error.message === 'Coupon introuvable' ? 404 : 400;
       return res.status(statusCode).json({
         success: false,
         message: error.message,
@@ -171,7 +171,7 @@ class CouponController {
 
       return res.status(200).json({
         success: true,
-        message: 'Coupon deleted successfully',
+        message: 'Coupon supprimé avec succès',
       });
     } catch (error) {
       return res.status(404).json({

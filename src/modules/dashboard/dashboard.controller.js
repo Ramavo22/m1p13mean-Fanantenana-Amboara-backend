@@ -13,7 +13,7 @@ class DashboardController {
 		} catch (error) {
 			return res.status(500).json({
 				success: false,
-				message: error.message || 'Error trying to get admin dashboard overview',
+				message: error.message || 'Erreur lors de la récupération du tableau de bord admin',
 			});
 		}
 	}
@@ -30,7 +30,7 @@ class DashboardController {
         } catch (error) {
             return res.status(500).json({
                 success: false,
-                message: error.message || 'Error trying to get net sales',
+                message: error.message || 'Erreur lors de la récupération des ventes nettes',
             });
         }
     }
@@ -48,7 +48,7 @@ class DashboardController {
         } catch (error) {
             return res.status(500).json({
                 success: false,
-                message: error.message || 'Error trying to get boutique dashboard overview',
+                message: error.message || 'Erreur lors de la récupération du tableau de bord boutique',
             });
         }
     }
@@ -71,7 +71,7 @@ class DashboardController {
         } catch (error) {
             return res.status(500).json({
                 success: false,
-                message: error.message || 'Error trying to get boutique net sales',
+                message: error.message || 'Erreur lors de la récupération des ventes nettes de la boutique',
             });
         }
     }
@@ -92,7 +92,7 @@ class DashboardController {
         } catch (error) {
             return res.status(500).json({
                 success: false,
-                message: error.message || "Error trying to get today's boutique net sales",
+                message: error.message || "Erreur lors de la récupération des ventes du jour de la boutique",
             });
         }
     }

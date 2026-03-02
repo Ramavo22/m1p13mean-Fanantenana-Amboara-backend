@@ -9,40 +9,40 @@ class CouponService {
     data._id = await generateCouponId();
 
     if (!data.code) {
-      throw new Error("Coupon code is required");
+      throw new Error("Le code du coupon est obligatoire");
     }
     const existingCoupon = await couponRepository.findByCode(data.code);
     if (existingCoupon) {
-      throw new Error("Coupon code already exists");
+      throw new Error("Ce code de coupon existe déjà");
     }
 
     const shop = await shopService.getUserShopInfo(userId);
     if (!shop) {
-      throw new Error("Shop not found for the connected user");
+      throw new Error("Aucune boutique trouvée pour l'utilisateur connecté");
     }
     data.boutiqueId = shop._id;
 
     if (data.percentage === undefined || data.percentage === null) {
-      throw new Error("Percentage is required");
+      throw new Error("Le pourcentage est obligatoire");
     }
 
     if (Number(data.percentage) < 1 || Number(data.percentage) > 100) {
-      throw new Error("Percentage must be between 1 and 100");
+      throw new Error("Le pourcentage doit être compris entre 1 et 100");
     }
 
     if (!data.expiresAt || Number.isNaN(new Date(data.expiresAt).getTime())) {
-      throw new Error("A valid expiration date is required");
+      throw new Error("Une date d'expiration valide est requise");
     }
 
     if (!["PACK", "SINGLE"].includes(data.type)) {
-      throw new Error("Type must be PACK or SINGLE");
+      throw new Error("Le type doit être PACK ou SINGLE");
     }
 
     if (
       !data.items ||
       (!Array.isArray(data.items) && data.items.length === 0)
     ) {
-      throw new Error("Items are required and must be an array");
+      throw new Error("Les articles sont obligatoires et doivent être un tableau");
     }
 
     data.code = String(data.code).toUpperCase().trim();
@@ -61,7 +61,7 @@ class CouponService {
     if (filters.type) {
       const normalizedType = String(filters.type).toUpperCase().trim();
         if (!['PACK', 'SINGLE'].includes(normalizedType)) {
-            throw new Error('Type must be PACK, SINGLE or ALL');
+            throw new Error('Le type doit être PACK, SINGLE ou ALL');
         }
         builtFilter.type = normalizedType;
     }
@@ -73,7 +73,7 @@ class CouponService {
         } else if (normalizedExpiration === 'expired') {
             builtFilter.expiresAt = { $lt: new Date() };
         } else {
-            throw new Error('Status must be active or expired');
+            throw new Error('Le statut doit être active ou expired');
         }
     }
 
@@ -92,11 +92,11 @@ class CouponService {
 
   async getCouponsForConnectedUser(userId, role, filters = {}, page = 1, limit = 10) {
     if (!userId) {
-      throw new Error("User ID is required");
+      throw new Error("L'ID utilisateur est obligatoire");
     }
 
     if (!role) {
-      throw new Error("User role is required");
+      throw new Error("Le rôle utilisateur est obligatoire");
     }
 
     const commonFilters = this._buildCouponFilters(filters);
@@ -104,7 +104,7 @@ class CouponService {
     if (role === "BOUTIQUE") {
       const shop = await shopService.getUserShopInfo(userId);
       if (!shop) {
-        throw new Error("Shop not found for the connected user");
+        throw new Error("Aucune boutique trouvée pour l'utilisateur connecté");
       }
       return await couponRepository.findAll(
         { boutiqueId: shop._id, ...commonFilters },
@@ -121,14 +121,14 @@ class CouponService {
       );
     }
 
-    throw new Error("Role not allowed for this resource");
+    throw new Error("Rôle non autorisé pour cette ressource");
   }
 
   async getCouponById(id) {
     const coupon = await couponRepository.findById(id);
 
     if (!coupon) {
-      throw new Error("Coupon not found");
+      throw new Error("Coupon introuvable");
     }
 
     return coupon;
@@ -142,7 +142,7 @@ class CouponService {
   async getCouponDetails(id) {
     const coupon = await couponRepository.findById(id);
     if (!coupon) {
-      throw new Error('Coupon not found');
+      throw new Error('Coupon introuvable');
     }
 
     const productIds = coupon.items.map(item => item._id);
@@ -183,45 +183,45 @@ class CouponService {
       data.code = String(data.code).toUpperCase().trim();
       const existingCoupon = await couponRepository.findByCode(data.code);
       if (existingCoupon && existingCoupon._id !== id) {
-        throw new Error("Coupon code already exists");
+        throw new Error("Ce code de coupon existe déjà");
       }
     }
 
     if (data.type && !["PACK", "SINGLE"].includes(data.type)) {
-      throw new Error("Type must be PACK or SINGLE");
+      throw new Error("Le type doit être PACK ou SINGLE");
     }
 
     if (
       data.percentage !== undefined &&
       (Number(data.percentage) < 1 || Number(data.percentage) > 100)
     ) {
-      throw new Error("Percentage must be between 1 and 100");
+      throw new Error("Le pourcentage doit être compris entre 1 et 100");
     }
 
     if (
       data.expiresAt !== undefined &&
       Number.isNaN(new Date(data.expiresAt).getTime())
     ) {
-      throw new Error("A valid expiration date is required");
+      throw new Error("Une date d'expiration valide est requise");
     }
 
     if (data.users !== undefined && !Array.isArray(data.users)) {
-      throw new Error("Users must be an array");
+      throw new Error("Les utilisateurs doivent être un tableau");
     }
 
     if (data.items !== undefined && !Array.isArray(data.items)) {
-      throw new Error("Items must be an array");
+      throw new Error("Les articles doivent être un tableau");
     }
 
     if (data.type === "SINGLE" && data.users && data.users.length === 0) {
-      throw new Error("Users are required when coupon type is SINGLE");
+      throw new Error("Les utilisateurs sont obligatoires quand le type du coupon est SINGLE");
     }
 
     delete data._id;
     const coupon = await couponRepository.update(id, data);
 
     if (!coupon) {
-      throw new Error("Coupon not found");
+      throw new Error("Coupon introuvable");
     }
 
     return coupon;
@@ -231,7 +231,7 @@ class CouponService {
     const coupon = await couponRepository.delete(id);
 
     if (!coupon) {
-      throw new Error("Coupon not found");
+      throw new Error("Coupon introuvable");
     }
 
     return coupon;
@@ -243,15 +243,15 @@ class CouponService {
     );
 
     if (!coupon) {
-      throw new Error("This coupon does not exist");
+      throw new Error("Ce coupon n'existe pas");
     }
 
     if (new Date(coupon.expiresAt) < new Date()) {
-      throw new Error("This coupon has expired");
+      throw new Error("Ce coupon a expiré");
     }
 
     if (coupon.users && coupon.users.some((u) => u._id === userId)) {
-      throw new Error("You already used this coupon");
+      throw new Error("Vous avez déjà utilisé ce coupon");
     }
 
     return coupon;

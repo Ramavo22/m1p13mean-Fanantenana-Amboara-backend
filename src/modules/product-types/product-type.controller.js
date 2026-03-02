@@ -9,7 +9,7 @@ class ProductTypeController {
 
       return res.status(201).json({
         success: true,
-        message: 'Product type created successfully',
+        message: 'Type de produit créé avec succès',
         data: productType,
       });
     } catch (error) {
@@ -66,7 +66,7 @@ class ProductTypeController {
 
       return res.status(200).json({
         success: true,
-        message: 'Product type updated successfully',
+        message: 'Type de produit mis à jour avec succès',
         data: productType,
       });
     } catch (error) {
@@ -85,7 +85,7 @@ class ProductTypeController {
 
       return res.status(200).json({
         success: true,
-        message: 'Product type deleted successfully',
+        message: 'Type de produit supprimé avec succès',
       });
     } catch (error) {
       return res.status(404).json({

@@ -15,19 +15,19 @@ class RentService {
             case 'YEARLY':
                 return new Date(now.setFullYear(now.getFullYear() + 1));
             default:
-                throw new Error('Invalid frequency');
+                throw new Error('Fréquence invalide');
         }
     }
 
     async createRent(rentData) {
         const box = await boxRepository.findById(rentData.boxId);
         if (!box) {
-            throw new Error('Box not found');
+            throw new Error('Box introuvable');
         }
 
         const shop = await shopRepository.findById(rentData.shopId);
         if (!shop) {
-            throw new Error('Shop not found');
+            throw new Error('Boutique introuvable');
         }
 
         // A la création d'une location, on définit la date de la prochaine échéance en fonction de la date de début et de la fréquence
@@ -43,7 +43,7 @@ class RentService {
     async getRentById(id) {
         const rent = await rentRepository.findById(id);
         if (!rent) {
-            throw new Error('Rent not found');
+            throw new Error('Location introuvable');
         }
         return rent;
     }
@@ -56,12 +56,12 @@ class RentService {
         const allowableStatus= ['ACTIVE', 'EXPIRED', 'CANCELLED'];
 
         if (data.status && !allowableStatus.includes(data.status)) {
-            throw new Error('Invalid rent status');
+            throw new Error('Statut de location invalide');
         }
 
         const rent = await rentRepository.update(id, data);
         if (!rent) {
-            throw new Error('Rent not found');
+            throw new Error('Location introuvable');
         }
         return rent;
     }
@@ -69,7 +69,7 @@ class RentService {
     async deleteRent(id) {
         const rent = await rentRepository.delete(id);
         if (!rent) {
-            throw new Error('Rent not found');
+            throw new Error('Location introuvable');
         }
         return rent;
     }
@@ -77,11 +77,11 @@ class RentService {
     async payRentById(rentId, userId, periode) {
         const rent = await rentRepository.findById(rentId);
         if (!rent) {
-            throw new Error('Rent not found');
+            throw new Error('Location introuvable');
         }
 
         if (rent.status !== 'ACTIVE') {
-            throw new Error('Only active rents can be paid');
+            throw new Error('Seules les locations actives peuvent être payées');
         }
 
         if (periode) {
@@ -102,11 +102,11 @@ class RentService {
     validatePeriod(periode) {
         const periodValue = String(periode || "");
         if (!/^\d{4}-\d{2}$/.test(periodValue)) {
-          throw new Error("Invalid period");
+          throw new Error("Période invalide");
         }
         const month = Number(periodValue.split("-")[1]);
         if (month < 1 || month > 12) {
-          throw new Error("Invalid period");
+          throw new Error("Période invalide");
         }
     }
 
@@ -129,7 +129,7 @@ class RentService {
         } catch (error) {
           // Duplicate key error -> payment for this rent and period already exists
           if (error && error.code === 11000) {
-            throw new Error("The rent for this period has already been paid");
+            throw new Error("Le loyer pour cette période a déjà été payé");
           }
           throw error;
         }

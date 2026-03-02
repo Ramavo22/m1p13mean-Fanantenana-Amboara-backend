@@ -11,7 +11,7 @@ class ShopController {
 
       return res.status(200).json({
         success: true,
-        message: `The box "${boxUpdated.label}" has been ${isAssignate ? 'assigned' : 'unassigned'} successfully`,
+        message: `La box "${boxUpdated.label}" a été ${isAssignate ? 'assignée' : 'désassignée'} avec succès`,
       });
     } catch (error) {
       return res.status(400).json({
@@ -34,7 +34,7 @@ class ShopController {
 
       return res.status(201).json({
         success: true,
-        message: 'Shop created successfully',
+        message: 'Boutique créée avec succès',
         data: shop,
       });
     } catch (error) {
@@ -150,7 +150,7 @@ class ShopController {
 
       return res.status(200).json({
         success: true,
-        message: 'Shop updated successfully',
+        message: 'Boutique mise à jour avec succès',
         data: shop,
       });
     } catch (error) {
@@ -169,7 +169,7 @@ class ShopController {
 
       return res.status(200).json({
         success: true,
-        message: 'Shop deleted successfully',
+        message: 'Boutique supprimée avec succès',
       });
     } catch (error) {
       return res.status(404).json({

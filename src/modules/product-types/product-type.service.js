@@ -10,26 +10,26 @@ class ProductTypeService {
     data._id = await generateProductTypeId();
 
     if (!data.label) {
-      throw new Error('The product type label is required');
+      throw new Error('Le libellé du type de produit est obligatoire');
     }
 
     // Validation métier complémentaire
     if (data.attributes?.length) {
       data.attributes.forEach(attr => {
         if (!attr.code || !attr.type) {
-          throw new Error('Each attribute must have a code and a type');
+          throw new Error('Chaque attribut doit avoir un code et un type');
         }
 
         if (attr.type === 'ENUM' && (!attr.values || attr.values.length === 0)) {
-          throw new Error(`The attribute ${attr.code} must have values`);
+          throw new Error(`L'attribut ${attr.code} doit avoir des valeurs`);
         }
 
         if (attr.type === 'NUMBER') {
           if (attr.min === undefined || attr.max === undefined) {
-            throw new Error(`The attribute ${attr.code} must have min and max`);
+            throw new Error(`L'attribut ${attr.code} doit avoir un min et un max`);
           }
           if (attr.min > attr.max) {
-            throw new Error(`min cannot be greater than max for ${attr.code}`);
+            throw new Error(`min ne peut pas être supérieur à max pour ${attr.code}`);
           }
         }
       });
@@ -46,7 +46,7 @@ class ProductTypeService {
     const productType = await productTypeRepository.findById(id);
 
     if (!productType) {
-      throw new Error('Product type not found');
+      throw new Error('Type de produit introuvable');
     }
 
     return productType;
@@ -56,7 +56,7 @@ class ProductTypeService {
     const productType = await productTypeRepository.update(id, data);
 
     if (!productType) {
-      throw new Error('Product type not found');
+      throw new Error('Type de produit introuvable');
     }
 
     return productType;
@@ -66,7 +66,7 @@ class ProductTypeService {
     const productType = await productTypeRepository.delete(id);
 
     if (!productType) {
-      throw new Error('Product type not found');
+      throw new Error('Type de produit introuvable');
     }
 
     return productType;
