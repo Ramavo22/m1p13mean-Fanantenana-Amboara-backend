@@ -18,6 +18,7 @@ const rentRoutes = require('./src/modules/rents/rent.routes');
 const storageRoutes = require('./src/modules/storage/storage.routes');  
 const panierRoutes = require('./src/modules/panier/panier.routes');
 const commandRoutes = require('./src/modules/command/command.routes');
+const couponRoutes = require('./src/modules/coupons/coupon.routes');
 
 // Créer l'application Express
 const app = express();
@@ -64,6 +65,7 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/storage', storageRoutes);
 app.use('/api/paniers', panierRoutes);
 app.use('/api/commands', commandRoutes);
+app.use('/api/coupons', couponRoutes);
 
 // Route de base
 app.get('/', (req, res) => {

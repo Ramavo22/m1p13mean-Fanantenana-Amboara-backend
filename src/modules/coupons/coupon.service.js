@@ -1,0 +1,183 @@
+const couponRepository = require('./coupon.repository');
+const { generateCouponId } = require('../../utils/utils.generator');
+const shopService = require('../shops/shop.service');
+
+class CouponService {
+
+  async createCoupon(data, userId = null) {
+    delete data._id;
+    data._id = await generateCouponId();
+
+    if (!data.code) {
+      throw new Error('Coupon code is required');
+    }
+    const existingCoupon = await couponRepository.findByCode(data.code);
+    if (existingCoupon) {
+        throw new Error("Coupon code already exists");
+    }
+
+    const shop = await shopService.getUserShopInfo(userId);
+    if (!shop) {
+      throw new Error('Shop not found for the connected user');
+    }
+    data.boutiqueId = shop._id;
+
+    if (data.percentage === undefined || data.percentage === null) {
+      throw new Error('Percentage is required');
+    }
+
+    if (Number(data.percentage) < 1 || Number(data.percentage) > 100) {
+      throw new Error('Percentage must be between 1 and 100');
+    }
+
+    if (!data.expiresAt || Number.isNaN(new Date(data.expiresAt).getTime())) {
+      throw new Error('A valid expiration date is required');
+    }
+
+    if (!['PACK', 'SINGLE'].includes(data.type)) {
+      throw new Error('Type must be PACK or SINGLE');
+    }
+
+    if(!data.items || !Array.isArray(data.items) && data.items.length === 0) {
+      throw new Error('Items are required and must be an array');
+    }
+
+    data.code = String(data.code).toUpperCase().trim();
+    data.users = Array.isArray(data.users) ? data.users : [];
+
+    return await couponRepository.create(data);
+  }
+
+  async getAllCoupons(filter = {}, page = 1, limit = 10) {
+    return await couponRepository.findAll(filter, page, limit);
+  }
+
+  async getCouponsForConnectedUser(userId, role, page = 1, limit = 10) {
+    if (!userId) {
+      throw new Error('User ID is required');
+    }
+
+    if (!role) {
+      throw new Error('User role is required');
+    }
+
+    if (role === 'BOUTIQUE') {
+      const shop = await shopService.getUserShopInfo(userId);
+      if (!shop) {
+        throw new Error('Shop not found for the connected user');
+      }
+      return await couponRepository.findAll({ boutiqueId: shop._id }, page, limit);
+    }
+
+    if (role === 'ACHETEUR') {
+      return await couponRepository.findAll({ 'users._id': userId }, page, limit);
+    }
+
+    throw new Error('Role not allowed for this resource');
+  }
+
+  async getCouponById(id) {
+    const coupon = await couponRepository.findById(id);
+
+    if (!coupon) {
+      throw new Error('Coupon not found');
+    }
+
+    return coupon;
+  }
+
+  async updateCoupon(id, data) {
+    if (data.code) {
+      data.code = String(data.code).toUpperCase().trim();
+      const existingCoupon = await couponRepository.findByCode(data.code);
+      if (existingCoupon && existingCoupon._id !== id) {
+        throw new Error('Coupon code already exists');
+      }
+    }
+
+    if (data.type && !['PACK', 'SINGLE'].includes(data.type)) {
+      throw new Error('Type must be PACK or SINGLE');
+    }
+
+    if (data.percentage !== undefined && (Number(data.percentage) < 1 || Number(data.percentage) > 100)) {
+      throw new Error('Percentage must be between 1 and 100');
+    }
+
+    if (data.expiresAt !== undefined && Number.isNaN(new Date(data.expiresAt).getTime())) {
+      throw new Error('A valid expiration date is required');
+    }
+
+    if (data.users !== undefined && !Array.isArray(data.users)) {
+      throw new Error('Users must be an array');
+    }
+
+    if (data.items !== undefined && !Array.isArray(data.items)) {
+      throw new Error('Items must be an array');
+    }
+
+    if (data.type === 'SINGLE' && data.users && data.users.length === 0) {
+      throw new Error('Users are required when coupon type is SINGLE');
+    }
+
+    delete data._id;
+    const coupon = await couponRepository.update(id, data);
+
+    if (!coupon) {
+      throw new Error('Coupon not found');
+    }
+
+    return coupon;
+  }
+
+  async deleteCoupon(id) {
+    const coupon = await couponRepository.delete(id);
+
+    if (!coupon) {
+      throw new Error('Coupon not found');
+    }
+
+    return coupon;
+  }
+
+  async validateCoupon(code, userId) {
+    const coupon = await couponRepository.findByCode(String(code).toUpperCase().trim());
+
+    if (!coupon) {
+      throw new Error('This coupon does not exist');
+    }
+
+    if (new Date(coupon.expiresAt) < new Date()) {
+      throw new Error('This coupon has expired');
+    }
+
+    if (coupon.users && coupon.users.some(u => u._id === userId)) {
+        throw new Error('You already used this coupon');
+    }
+
+    return coupon;
+  }
+
+  async markCouponAsUsed(couponId, userId) {
+    return couponRepository.update(couponId, {
+      $push: {
+        users: {
+          _id: userId,
+          usedAt: new Date(),
+        },
+      },
+    });
+  }
+
+  async unmarkCouponUsage(couponId, userId) {
+    return couponRepository.update(couponId, {
+      $pull: {
+        users: {
+          _id: userId,
+        },
+      },
+    });
+  }
+
+}
+
+module.exports = new CouponService();
