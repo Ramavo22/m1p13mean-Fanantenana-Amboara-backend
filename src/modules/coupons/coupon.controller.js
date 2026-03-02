@@ -39,6 +39,25 @@ class CouponController {
     }
   }
 
+  async getActive(req, res) {
+    try {
+      const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+      const limit = Math.max(parseInt(req.query.limit, 10) || 10, 1);
+      const result = await couponService.getActiveCoupons(page, limit);
+
+      return res.status(200).json({
+        success: true,
+        data: result.data,
+        pagination: result.pagination,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+
   async getMyCoupons(req, res) {
     try {
       const userId = req.user?.sub;

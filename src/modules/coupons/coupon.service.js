@@ -54,6 +54,10 @@ class CouponService {
     return await couponRepository.findAll(filter, page, limit);
   }
 
+  async getActiveCoupons(page = 1, limit = 10) {
+    return await couponRepository.findAllActive({}, page, limit);
+  }
+
   async getCouponsForConnectedUser(userId, role, page = 1, limit = 10) {
     if (!userId) {
       throw new Error("User ID is required");
