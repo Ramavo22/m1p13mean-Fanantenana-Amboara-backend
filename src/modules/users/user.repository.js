@@ -22,6 +22,11 @@ class UserRepository {
     return await User.findOne({ login });
   }
 
+  // Récupérer un utilisateur par ID (avec mot de passe pour changement de mot de passe)
+  async findByIdWithPassword(userId) {
+    return await User.findById(userId);
+  }
+
   // Récupérer un utilisateur par email
   async findByEmail(email) {
     return await User.findOne({ 'profile.email': email }).select('-password');

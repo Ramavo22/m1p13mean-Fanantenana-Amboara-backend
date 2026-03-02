@@ -254,6 +254,26 @@ class UserController {
       });
     }
   }
+
+  // Changer le mot de passe
+  async changePassword(req, res) {
+    try {
+      const userId = req.user.sub;
+      const { oldPassword, newPassword } = req.body;
+
+      const result = await userService.changePassword(userId, oldPassword, newPassword);
+      
+      return res.status(200).json({
+        success: true,
+        message: result.message,
+      });
+    } catch (error) {
+      return res.status(400).json({
+        success: false,
+        message: error.message || 'Erreur lors du changement de mot de passe',
+      });
+    }
+  }
 }
 
 module.exports = new UserController();
