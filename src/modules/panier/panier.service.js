@@ -1,4 +1,3 @@
-const mongoose = require('mongoose');
 const panierRepository = require('./panier.repository');
 const { generatePanierId, generateSequentialId } = require('../../utils/utils.generator');
 const transactionRepository = require('../transactions/transaction.repository');
@@ -6,6 +5,8 @@ const mvtStockRepository = require('../mvt-stock/mvtStock.repository');
 const productRepository = require('../products/product.repository');
 const userRepository = require('../users/user.repository');
 const commandRepository = require('../command/command.repository');
+const couponRepository = require('../coupons/coupon.repository');
+const couponService = require('../coupons/coupon.service');
 
 class PanierService {
   /**
@@ -16,6 +17,45 @@ class PanierService {
   }
 
   /**
+   * Calcule la réduction à appliquer selon le type de coupon.
+   *
+   * PACK  : la remise s'applique uniquement si TOUS les produits du coupon
+   *         sont présents dans le panier. La réduction porte sur le sous-total
+   *         des produits du pack.
+   * SINGLE: la remise s'applique individuellement à chaque article du panier
+   *         qui figure dans la liste des produits du coupon.
+   *
+   * @param {Array}  items  - articles du panier
+   * @param {Object} coupon - coupon validé (avec items, percentage, type)
+   * @returns {number} montant de la réduction (>= 0)
+   */
+  _computeDiscount(items, coupon) {
+    const couponProductIds = new Set(coupon.items.map(ci => ci._id));
+
+    if (coupon.type === 'PACK') {
+      const cartProductIds = new Set(items.map(i => i.productId));
+      const allPresent = coupon.items.every(ci => cartProductIds.has(ci._id));
+      if (!allPresent) return 0;
+
+      const packTotal = items
+        .filter(i => couponProductIds.has(i.productId))
+        .reduce((sum, i) => sum + i.price * i.qte, 0);
+
+      return Math.round((packTotal * coupon.percentage) / 100 * 100) / 100;
+    }
+
+    if (coupon.type === 'SINGLE') {
+      const discount = items
+        .filter(i => couponProductIds.has(i.productId))
+        .reduce((sum, i) => sum + (i.price * i.qte * coupon.percentage) / 100, 0);
+
+      return Math.round(discount * 100) / 100;
+    }
+
+    return 0;
+  }
+
+  /**
    * Crée un nouveau panier pour l'acheteur connecté.
    * Si etat === 'VALIDATED', exécute dans une transaction MongoDB :
    *   - Vérification du solde de l'acheteur
@@ -23,13 +63,13 @@ class PanierService {
    *   - Création de la transaction ACHAT (avec panierId)
    *   - Mouvement de stock VENTE + décrémentation du stock produit pour chaque article
    */
-  async create(acheteurId, items = [], etat = 'PENDING') {
+  async create(acheteurId, items = [], etat = 'PENDING', couponId = null) {
     if (!items.length) {
       throw new Error('Le panier doit contenir au moins un article');
     }
 
     const etatValue = etat === 'VALIDATED' ? 'VALIDATED' : 'PENDING';
-    const total = this._computeTotal(items);
+    const totalBeforeDiscount = this._computeTotal(items);
 
     // Règle : un seul panier PENDING autorisé par acheteur
     const existingPending = await panierRepository.findPendingByAcheteurId(acheteurId);
@@ -45,18 +85,34 @@ class PanierService {
     }
 
     if (etatValue === 'PENDING') {
-      return panierRepository.create({ _id, acheteurId, items, total, date: new Date(), etat: etatValue });
+      return panierRepository.create({
+        _id, acheteurId, items,
+        total: totalBeforeDiscount,
+        date: new Date(),
+        etat: etatValue,
+      });
     }
 
     // --- Processus VALIDATED avec rollback manuel (compatible standalone MongoDB) ---
     let panier = null;
     let soldeDebite = false;
     let transactionCreee = null;
+    let couponMarked = false;
+    let validatedCoupon = null;
+    let discount = 0;
     const mvtsCrees = [];
     const stocksDecrementés = [];
     const commandsCrees = [];
 
     try {
+      // 0. Validation et calcul du coupon (avant toute écriture)
+      if (couponId) {
+        validatedCoupon = await couponService._validateCoupon(couponId, acheteurId);
+        discount = this._computeDiscount(items, validatedCoupon);
+      }
+
+      const total = totalBeforeDiscount - discount;
+
       // 1. Vérifications AVANT toute écriture : solde + stock, et collecte des infos produit
       const user = await userRepository.findById(acheteurId);
       if (!user) throw new Error('Utilisateur introuvable');
@@ -75,21 +131,33 @@ class PanierService {
         productsMap[item.productId] = product;
       }
 
-      // 2. Créer le panier
-      panier = await panierRepository.create(
-        { _id, acheteurId, items, total, date: new Date(), etat: etatValue }
-      );
+      // 2. Marquer le coupon comme utilisé (si applicable)
+      if (validatedCoupon) {
+        await couponService.markCouponAsUsed(validatedCoupon._id, acheteurId);
+        couponMarked = true;
+      }
 
-      // 3. Créer la transaction ACHAT avec panierId
+      // 3. Créer le panier (avec infos coupon si applicable)
+      const panierData = {
+        _id, acheteurId, items, total, date: new Date(), etat: etatValue,
+      };
+      if (validatedCoupon) {
+        panierData.couponId = validatedCoupon._id;
+        panierData.discount = discount;
+        panierData.totalBeforeDiscount = totalBeforeDiscount;
+      }
+      panier = await panierRepository.create(panierData);
+
+      // 4. Créer la transaction ACHAT avec panierId
       transactionCreee = await transactionRepository.create(
         { type: 'ACHAT', total, userId: acheteurId, panierId: _id, date: new Date() }
       );
 
-      // 4. Débiter le solde après la transaction
+      // 5. Débiter le solde après la transaction
       await userRepository.decrementSolde(acheteurId, total);
       soldeDebite = true;
 
-      // 5. Pour chaque article : mouvement VENTE + décrémentation du stock
+      // 6. Pour chaque article : mouvement VENTE + décrémentation du stock
       for (let i = 0; i < items.length; i++) {
         const item = items[i];
         const mvt = await mvtStockRepository.create(
@@ -100,7 +168,7 @@ class PanierService {
         stocksDecrementés.push({ productId: item.productId, qte: item.qte });
       }
 
-      // 6. Grouper les items par boutique et créer une commande par boutique
+      // 7. Grouper les items par boutique et créer une commande par boutique
       const itemsParBoutique = {};
       for (const item of items) {
         const product = productsMap[item.productId];
@@ -126,8 +194,26 @@ class PanierService {
       for (const boutiqueId of Object.keys(itemsParBoutique)) {
         const group = itemsParBoutique[boutiqueId];
         const cmdId = await generateSequentialId('CMD');
-        const totalAmount = group.items.reduce((sum, i) => sum + i.produit.price * i.produit.qte, 0);
-        const cmd = await commandRepository.create({
+        const totalAmountBeforeDiscount = group.items.reduce((sum, i) => sum + i.produit.price * i.produit.qte, 0);
+
+        // Calculer la remise applicable à cette commande (sous-ensemble du coupon)
+        let cmdDiscount = 0;
+        if (validatedCoupon && discount > 0) {
+          const couponProductIds = new Set(validatedCoupon.items.map(ci => ci._id));
+          const eligibleTotal = group.items
+            .filter(i => couponProductIds.has(i.produit._id))
+            .reduce((sum, i) => sum + i.produit.price * i.produit.qte, 0);
+          cmdDiscount = Math.round((eligibleTotal * validatedCoupon.percentage) / 100 * 100) / 100;
+
+          // Pour PACK, la remise ne s'applique que si tous les produits du coupon sont dans le panier global (déjà vérifié)
+          if (validatedCoupon.type === 'PACK') {
+            cmdDiscount = eligibleTotal > 0 ? cmdDiscount : 0;
+          }
+        }
+
+        const totalAmount = totalAmountBeforeDiscount - cmdDiscount;
+
+        const cmdData = {
           _id: cmdId,
           acheteur: { _id: acheteurId, name: user.profile.fullName },
           boutique: group.boutique,
@@ -135,7 +221,13 @@ class PanierService {
           items: group.items,
           totalAmount,
           totalItems: group.items.length,
-        });
+        };
+        if (validatedCoupon && cmdDiscount > 0) {
+          cmdData.couponId = validatedCoupon._id;
+          cmdData.discount = cmdDiscount;
+          cmdData.totalBeforeDiscount = totalAmountBeforeDiscount;
+        }
+        const cmd = await commandRepository.create(cmdData);
         commandsCrees.push(cmd._id);
       }
 
@@ -156,10 +248,13 @@ class PanierService {
         await transactionRepository.deleteById(transactionCreee._id).catch(() => {});
       }
       if (soldeDebite) {
-        await userRepository.incrementSolde(acheteurId, total).catch(() => {});
+        await userRepository.incrementSolde(acheteurId, totalBeforeDiscount - discount).catch(() => {});
       }
       if (panier) {
         await panierRepository.delete(_id).catch(() => {});
+      }
+      if (couponMarked && validatedCoupon) {
+        await couponService.unmarkCouponUsage(validatedCoupon._id, acheteurId).catch(() => {});
       }
 
       throw err;

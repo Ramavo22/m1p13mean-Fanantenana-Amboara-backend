@@ -49,10 +49,20 @@ async function generateCommandId() {
   return await generateSequentialId('CMD');
 }
 
+/**
+ * Génère un ID pour un coupon (CPxxx)
+ * @returns {Promise<string>}
+ */
+async function generateCouponId() {
+  const rawId = await generateSequentialId('CP', 3);
+  return rawId.replace('CP-', 'CP');
+}
+
 module.exports = {
   generateSequentialId,
   generateProductId,
   generateProductTypeId,
   generatePanierId,
   generateCommandId,
+  generateCouponId,
 };
