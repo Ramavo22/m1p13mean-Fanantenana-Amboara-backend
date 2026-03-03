@@ -40,7 +40,7 @@ class CouponService {
 
     if (
       !data.items ||
-      (!Array.isArray(data.items) && data.items.length === 0)
+      (!Array.isArray(data.items) || data.items.length === 0)
     ) {
       throw new Error("Les articles sont obligatoires et doivent être un tableau");
     }
