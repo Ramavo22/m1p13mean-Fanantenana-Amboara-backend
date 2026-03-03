@@ -132,7 +132,7 @@ class ShopService {
       let rent = {
         boxId: box._id,
         shopId: shop._id,
-        startDate: new Date(),
+        startDate: assignationInformation.startDate,
         amount: assignationInformation.rent,
         frequency: assignationInformation.frequency || 'MONTHLY'
       }

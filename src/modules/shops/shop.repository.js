@@ -4,7 +4,36 @@ const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 class ShopRepository {
     async findShopForSelect(){
-        return await Shop.find().select('_id name');
+        // Retourner seulement les boutiques actives avec une location active
+        const shops = await Shop.aggregate([
+            {
+                $match: {
+                    status: 'ACTIVE',
+                    boxId: { $ne: null }
+                }
+            },
+            {
+                $lookup: {
+                    from: 'rents',
+                    localField: '_id',
+                    foreignField: 'shopId',
+                    as: 'rents'
+                }
+            },
+            {
+                $match: {
+                    'rents.status': 'ACTIVE'
+                }
+            },
+            {
+                $project: {
+                    _id: 1,
+                    name: 1
+                }
+            }
+        ]);
+        
+        return shops;
     }
 
     async create(data){

@@ -118,6 +118,11 @@ class TransactionRepository {
         return uniqueBuyers.length;
     }
 
+    async findPaidPeriodsByRentId(rentId) {
+        const transactions = await Transaction.find({ rentId, type: 'LOYER' }).select('periode');
+        return transactions.map(t => t.periode);
+    }
+
     async getMonthlyCustomersByYear(year) {
         const yearStart = new Date(year, 0, 1);
         const nextYearStart = new Date(year + 1, 0, 1);

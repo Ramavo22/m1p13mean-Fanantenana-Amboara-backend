@@ -144,6 +144,15 @@ class ProductService {
       throw new Error('Produit introuvable');
     }
 
+    // Vérifier que la boutique est active
+    const shop = await shopRepository.findById(product.shop._id);
+    if (!shop) {
+      throw new Error('Boutique introuvable');
+    }
+    if (shop.status !== 'ACTIVE') {
+      throw new Error('Vous ne pouvez pas ajouter du stock : votre boutique est inactive');
+    }
+
     // Vérifier que la boutique du produit est assignée à un box actif
     const activeRent = await rentRepository.findActiveByShopId(product.shop._id);
     if (!activeRent) {

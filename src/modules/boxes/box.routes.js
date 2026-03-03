@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const boxController = require('./box.controller');
+const {authenticateToken, authorizeRoles} = require("../../middleware/auth.middleware");
 
 /**
  * @swagger
@@ -24,7 +25,7 @@ const boxController = require('./box.controller');
  *       400:
  *         $ref: '#/components/responses/BadRequest'
  */
-router.post('/', (req, res) => boxController.create(req, res));
+router.post('/', authenticateToken, authorizeRoles('ADMIN'), (req, res) => boxController.create(req, res));
 
 /**
  * @swagger
@@ -66,7 +67,7 @@ router.post('/', (req, res) => boxController.create(req, res));
  *       500:
  *         $ref: '#/components/responses/InternalServerError'
  */
-router.get('/', (req, res) => boxController.getAll(req, res));
+router.get('/', authenticateToken, (req, res) => boxController.getAll(req, res));
 
 /**
  * @swagger
@@ -91,7 +92,7 @@ router.get('/', (req, res) => boxController.getAll(req, res));
  *       404:
  *         $ref: '#/components/responses/NotFound'
  */
-router.get('/:id', (req, res) => boxController.getById(req, res));
+router.get('/:id', authenticateToken, authorizeRoles('ADMIN'), (req, res) => boxController.getById(req, res));
 
 /**
  * @swagger
@@ -122,7 +123,7 @@ router.get('/:id', (req, res) => boxController.getById(req, res));
  *       400:
  *         $ref: '#/components/responses/BadRequest'
  */
-router.put('/:id', (req, res) => boxController.update(req, res));
+router.put('/:id', authenticateToken, authorizeRoles('ADMIN'), (req, res) => boxController.update(req, res));
 
 /**
  * @swagger
@@ -147,7 +148,7 @@ router.put('/:id', (req, res) => boxController.update(req, res));
  *       404:
  *         $ref: '#/components/responses/NotFound'
  */
-router.delete('/:id', (req, res) => boxController.delete(req, res));
+router.delete('/:id', authenticateToken, authorizeRoles('ADMIN'), (req, res) => boxController.delete(req, res));
 
 /**
  * @swagger
@@ -178,6 +179,6 @@ router.delete('/:id', (req, res) => boxController.delete(req, res));
  *       400:
  *         $ref: '#/components/responses/BadRequest'
  */
-router.patch('/:id/state', (req, res) => boxController.changeState(req, res));
+router.patch('/:id/state', authenticateToken, authorizeRoles('ADMIN'), (req, res) => boxController.changeState(req, res));
 
 module.exports = router;
