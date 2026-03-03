@@ -46,6 +46,10 @@ class RentRepository {
         return await Rent.findByIdAndDelete(id);
     }
 
+    async findActiveByShopId(shopId) {
+        return await Rent.findOne({ shopId, status: 'ACTIVE' });
+    }
+
 }
 
 module.exports = new RentRepository();
