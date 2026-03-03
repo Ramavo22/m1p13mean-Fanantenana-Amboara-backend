@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const storageController = require('./storage.controller');
+const { authenticateToken } = require('../../middleware/auth.middleware');
 
 /**
  * @swagger
@@ -21,7 +22,7 @@ const storageController = require('./storage.controller');
  *       500:
  *         description: Erreur de connexion
  */
-router.get('/test-connection', storageController.listBuckets);
+router.get('/test-connection', authenticateToken, storageController.listBuckets);
 
 /**
  * @swagger
@@ -57,8 +58,8 @@ router.get('/test-connection', storageController.listBuckets);
  *       400:
  *         description: Données invalides
  */
-router.get('/buckets', storageController.listBuckets);
-router.post('/buckets', storageController.createBucket);
+router.get('/buckets', authenticateToken, storageController.listBuckets);
+router.post('/buckets', authenticateToken, storageController.createBucket);
 
 /**
  * @swagger
@@ -82,6 +83,6 @@ router.post('/buckets', storageController.createBucket);
  *       200:
  *         description: Liste des fichiers récupérée
  */
-router.get('/buckets/:bucketName/files', storageController.listFilesInBucket);
+router.get('/buckets/:bucketName/files', authenticateToken, storageController.listFilesInBucket);
 
 module.exports = router;

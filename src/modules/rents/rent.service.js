@@ -90,6 +90,22 @@ class RentService {
 
         const transactionPeriod = periode || this.formatPeriod(rent.nextDeadline);
 
+        // Vérifier que la période n'est pas antérieure à la date de début de la location
+        const startPeriod = this.formatPeriod(rent.startDate);
+        if (transactionPeriod < startPeriod) {
+            throw new Error('La période ne peut pas être antérieure à la date de début de la location');
+        }
+
+        // Vérifier qu'il n'y a pas de périodes impayées avant la période choisie
+        const expectedPeriods = this.generateExpectedPeriods(rent.startDate, transactionPeriod, rent.frequency);
+        if (expectedPeriods.length > 0) {
+            const paidPeriods = await transactionRepository.findPaidPeriodsByRentId(rent._id);
+            const unpaidPeriods = expectedPeriods.filter(p => !paidPeriods.includes(p));
+            if (unpaidPeriods.length > 0) {
+                throw new Error(`Vous avez encore des périodes impayées : ${unpaidPeriods.map(p => this.formatPeriodLabel(p)).join(', ')}`);
+            }
+        }
+
         const transactionData = await this.createTransaction(rent, userId, transactionPeriod);
 
         // Au paiement d'une location, on met à jour la date de la prochaine échéance en fonction de la dernière échéance et la fréquence
@@ -114,6 +130,27 @@ class RentService {
         return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
     }
 
+    formatPeriodLabel(period) {
+        const [year, month] = period.split('-');
+        const monthNames = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin',
+            'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+        return `${monthNames[Number(month) - 1]} ${year}`;
+    }
+
+    generateExpectedPeriods(startDate, targetPeriod, frequency) {
+        const periods = [];
+        let current = new Date(startDate);
+
+        while (true) {
+            const period = this.formatPeriod(current);
+            if (period >= targetPeriod) break;
+            periods.push(period);
+            current = this.setNextDeadline(new Date(current), frequency);
+        }
+
+        return periods;
+    }
+
     async createTransaction(rent, userId, periode) {
         try {
           let transactionData = {
@@ -122,7 +159,7 @@ class RentService {
             rentId: rent._id,
             date: new Date(),
             userId,
-                        periode,
+            periode,
           };
           transactionData = await transactionRepository.create(transactionData);
           return transactionData;

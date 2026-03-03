@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const productTypeController = require('./product-type.controller');
+const { authenticateToken, authorizeRoles } = require('../../middleware/auth.middleware');
 
 /**
  * @swagger
@@ -24,7 +25,7 @@ const productTypeController = require('./product-type.controller');
  *       400:
  *         $ref: '#/components/responses/BadRequest'
  */
-router.post('/', (req, res) => productTypeController.create(req, res));
+router.post('/', authenticateToken, authorizeRoles('ADMIN'), (req, res) => productTypeController.create(req, res));
 
 /**
  * @swagger
@@ -147,7 +148,7 @@ router.get('/:id', (req, res) => productTypeController.getById(req, res));
  *       404:
  *         $ref: '#/components/responses/NotFound'
  */
-router.put('/:id', (req, res) => productTypeController.update(req, res));
+router.put('/:id', authenticateToken, authorizeRoles('ADMIN'), (req, res) => productTypeController.update(req, res));
 
 /**
  * @swagger
@@ -172,6 +173,6 @@ router.put('/:id', (req, res) => productTypeController.update(req, res));
  *       404:
  *         $ref: '#/components/responses/NotFound'
  */
-router.delete('/:id', (req, res) => productTypeController.delete(req, res));
+router.delete('/:id', authenticateToken, authorizeRoles('ADMIN'), (req, res) => productTypeController.delete(req, res));
 
 module.exports = router;
