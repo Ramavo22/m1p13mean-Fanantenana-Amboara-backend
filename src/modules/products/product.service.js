@@ -4,6 +4,7 @@ const shopRepository = require('../shops/shop.repository');
 const { generateProductId } = require('../../utils/utils.generator');
 const MvtStockService = require('../mvt-stock/mvtStock.service');
 const storageService = require('../storage/storage.services');
+const rentRepository = require('../rents/rent.repository');
 
 class ProductService {
 
@@ -141,6 +142,12 @@ class ProductService {
     const product = await this.getProductById(productId);
     if (!product) {
       throw new Error('Produit introuvable');
+    }
+
+    // Vérifier que la boutique du produit est assignée à un box actif
+    const activeRent = await rentRepository.findActiveByShopId(product.shop._id);
+    if (!activeRent) {
+      throw new Error('Vous ne pouvez pas ajouter du stock : votre boutique n\'est pas assignée à un box.');
     }
 
     product.stock += quantity;
