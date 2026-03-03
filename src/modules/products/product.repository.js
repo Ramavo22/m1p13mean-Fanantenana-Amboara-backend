@@ -13,43 +13,121 @@ class ProductRepository {
 
     async findFiltered(filter = {}, page = 1, limit = 10) {
         const skip = (page - 1) * limit;
-        const query = {};
+        
+        // Construction du pipeline d'agrégation
+        const matchStage = {
+            status: 'ACTIVE' // Seulement les produits actifs
+        };
 
         // Multi-boutiques
         if (filter.shopIds?.length) {
-            query['shop._id'] = { $in: filter.shopIds };
+            matchStage['shop._id'] = { $in: filter.shopIds };
         }
 
         // Multi-typeProduit
         if (filter.typeProduitIds?.length) {
-            query.productTypeId = { $in: filter.typeProduitIds };
+            matchStage.productTypeId = { $in: filter.typeProduitIds };
         }
 
         // Prix
         if (filter.priceMin !== undefined || filter.priceMax !== undefined) {
-            query.price = {};
-            if (filter.priceMin !== undefined) query.price.$gte = filter.priceMin;
-            if (filter.priceMax !== undefined) query.price.$lte = filter.priceMax;
+            matchStage.price = {};
+            if (filter.priceMin !== undefined) matchStage.price.$gte = filter.priceMin;
+            if (filter.priceMax !== undefined) matchStage.price.$lte = filter.priceMax;
         }
 
         // Stock
         if (filter.inStock) {
-            query.stock = { $gt: 0 };
+            matchStage.stock = { $gt: 0 };
         }
 
         // Attributs dynamiques
         if (filter.attributes) {
             for (const [key, value] of Object.entries(filter.attributes)) {
-                query[`attributes.${key}`] = value;
+                matchStage[`attributes.${key}`] = value;
             }
         }
 
-        const [products, total] = await Promise.all([
-            Product.find(query).skip(skip).limit(limit),
-            Product.countDocuments(query)
-        ]);
+        const pipeline = [
+            { $match: matchStage },
+            // Lookup pour vérifier le statut de la boutique
+            {
+                $lookup: {
+                    from: 'shops',
+                    let: { shopId: { $toObjectId: '$shop._id' } },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: {
+                                    $and: [
+                                        { $eq: ['$_id', '$$shopId'] },
+                                        { $eq: ['$status', 'ACTIVE'] }
+                                    ]
+                                }
+                            }
+                        }
+                    ],
+                    as: 'shopInfo'
+                }
+            },
+            // Filtrer uniquement les produits avec une boutique active
+            {
+                $match: {
+                    shopInfo: { $ne: [] }
+                }
+            },
+            // Lookup pour vérifier que la boutique est assignée à un box actif
+            {
+                $lookup: {
+                    from: 'rents',
+                    let: { shopId: { $toObjectId: '$shop._id' } },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: {
+                                    $and: [
+                                        { $eq: ['$shopId', '$$shopId'] },
+                                        { $eq: ['$status', 'ACTIVE'] }
+                                    ]
+                                }
+                            }
+                        }
+                    ],
+                    as: 'activeRent'
+                }
+            },
+            // Filtrer uniquement les produits avec une location active
+            {
+                $match: {
+                    activeRent: { $ne: [] }
+                }
+            },
+            // Retirer les champs temporaires du résultat final
+            {
+                $project: {
+                    activeRent: 0,
+                    shopInfo: 0
+                }
+            },
+            {
+                $facet: {
+                    data: [
+                        { $skip: skip },
+                        { $limit: limit }
+                    ],
+                    totalCount: [
+                        { $count: 'count' }
+                    ]
+                }
+            }
+        ];
+
+        const result = await Product.aggregate(pipeline);
+        const data = result[0].data;
+        const total = result[0].totalCount[0]?.count || 0;
+
         return {
-            data: products,
+            data,
             pagination: {
                 page,
                 limit,
@@ -172,7 +250,9 @@ class ProductRepository {
         const skip = (page - 1) * limit;
         
         // Construction du match query
-        const matchQuery = {};
+        const matchQuery = {
+            status: 'ACTIVE' // Seulement les produits actifs
+        };
 
         // Multi-boutiques
         if (filter.shopIds?.length) {
@@ -205,6 +285,58 @@ class ProductRepository {
 
         const pipeline = [
             { $match: matchQuery },
+            // Lookup pour vérifier le statut de la boutique
+            {
+                $lookup: {
+                    from: 'shops',
+                    let: { shopId: { $toObjectId: '$shop._id' } },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: {
+                                    $and: [
+                                        { $eq: ['$_id', '$$shopId'] },
+                                        { $eq: ['$status', 'ACTIVE'] }
+                                    ]
+                                }
+                            }
+                        }
+                    ],
+                    as: 'shopInfo'
+                }
+            },
+            // Filtrer uniquement les produits avec une boutique active
+            {
+                $match: {
+                    shopInfo: { $ne: [] }
+                }
+            },
+            // Lookup pour vérifier que la boutique est assignée à un box actif
+            {
+                $lookup: {
+                    from: 'rents',
+                    let: { shopId: { $toObjectId: '$shop._id' } },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: {
+                                    $and: [
+                                        { $eq: ['$shopId', '$$shopId'] },
+                                        { $eq: ['$status', 'ACTIVE'] }
+                                    ]
+                                }
+                            }
+                        }
+                    ],
+                    as: 'activeRent'
+                }
+            },
+            // Filtrer uniquement les produits avec une location active
+            {
+                $match: {
+                    activeRent: { $ne: [] }
+                }
+            },
             {
                 $lookup: {
                     from: 'producttypes',
@@ -229,7 +361,9 @@ class ProductRepository {
                     attributes: 1,
                     status: 1,
                     createdAt: 1,
-                    updatedAt: 1
+                    updatedAt: 1,
+                    activeRent: 0,
+                    shopInfo: 0
                 }
             },
             {
